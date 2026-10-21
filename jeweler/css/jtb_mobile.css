@@ -100,3 +100,7 @@ nav a {
 nav a:hover {
   color: #999999; /* Changes color when hovered */
 }
+
+nav a.active {
+  text-decoration: underline;
+}
