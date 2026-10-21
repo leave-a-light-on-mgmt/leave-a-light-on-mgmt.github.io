@@ -73,7 +73,7 @@ nav {
   background: linear-gradient(to bottom, rgba(255, 255, 255, 1) 98%, rgba(255, 255, 255, 0) 100%);
   display: flex;
   justify-content: space-around; /* Spaces the 3 links evenly */
-  padding: 0px .5vw;
+  padding: 0px 1.5vw;
 
 }
 
