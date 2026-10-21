@@ -58,7 +58,10 @@ div {
 }
 
 img {
-	width:  100%;
+	display: block;
+  	max-width: 100%;
+ 	height: auto;
+  	max-height: calc(100vh - var(--nav-height));
 }
 
 iframe {
