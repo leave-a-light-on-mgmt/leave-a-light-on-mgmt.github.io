@@ -84,7 +84,7 @@ nav a {
   text-decoration: none;
   font-family: sans-serif;
   font-weight: bold;
-  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.1rem);
   transition: color 0.1s;
 }
 
