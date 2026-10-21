@@ -38,7 +38,7 @@ div {
 }
 
 .maincenter {
-	width: var(--img-width);
+	width: 89.5vw;
 	text-align: center;
 	margin:  auto;
 	padding: .5vw;
