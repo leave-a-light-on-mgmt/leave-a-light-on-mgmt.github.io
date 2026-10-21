@@ -28,7 +28,7 @@
   	<body>
 
   		<main>
-  			<nav>
+  			<nav id="site-nav">
   				<a href="#jeweler"><h1>Jeweler</h1><a/>
   				<a href="#music">music</a><a href="#video">video</a><a href="#social">social</a><a href="#press">press</a>
   			</nav>
@@ -58,6 +58,19 @@
 
 
   	</main>
+
+<script>
+    const nav = document.getElementById('site-nav');
+
+    function updateNavHeight() {
+      const navHeight = nav.getBoundingClientRect().height;
+      document.documentElement.style.setProperty('--nav-height', `${navHeight}px`);
+    }
+
+    updateNavHeight();
+    window.addEventListener('resize', updateNavHeight);
+</script>
+	
   </body>
  </html>
 
