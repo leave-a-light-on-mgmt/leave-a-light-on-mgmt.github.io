@@ -35,7 +35,7 @@
 
 
   			<div class="maincenter" id="jeweler">
-  				<img src="images/jewelerbio.jpg" alt="Jeweler - the band">
+  				<img class="bio-image" src="images/jewelerbio.jpg" alt="Jeweler - the band">
   			</div>
 
   			<div class="bio">
@@ -95,6 +95,19 @@ const setActiveLink = () => {
 
 window.addEventListener('scroll', setActiveLink);
 window.addEventListener('load', setActiveLink);
+</script>
+
+<script>
+const bioImage = document.querySelector('.bio-image');
+
+function updateImageWidth() {
+  const width = bioImage.getBoundingClientRect().width;
+  document.documentElement.style.setProperty('--img-width', `${width}px`);
+}
+
+updateImageWidth();
+window.addEventListener('resize', updateImageWidth);
+
 </script>
 	
   </body>
