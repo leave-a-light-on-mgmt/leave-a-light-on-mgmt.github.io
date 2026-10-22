@@ -70,6 +70,14 @@ img.bio-image {
   	max-height: calc(98vh - var(--nav-height));
 }
 
+img.instagram {
+	display: block;
+	width: 10vw;
+  	max-width: 100%;
+ 	height: auto;
+  	max-height: calc(98vh - var(--nav-height));
+}
+
 iframe {
   display: block;
   margin: 0 auto;
