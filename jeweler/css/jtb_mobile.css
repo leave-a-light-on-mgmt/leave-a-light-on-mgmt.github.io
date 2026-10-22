@@ -210,6 +210,10 @@ a.press-link {
   font-weight: normal;
   font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
   transition: color 0.1s;
+  display: block;
+  width: 100%;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 nav a:hover {
