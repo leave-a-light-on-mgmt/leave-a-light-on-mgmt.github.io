@@ -148,10 +148,13 @@ a.streamicon {
 
 }
 
-iframe {
-  display: block;
-  margin: auto auto 1em auto;
-  max-width: 100%;
+iframe.bandcamp {
+  border: 0;
+	width: 89.5vw;
+	max-width: 700px;
+	height: 786px;
+	display: block;
+	margin: 0 auto 1em auto;
 }
 
 iframe.video {
