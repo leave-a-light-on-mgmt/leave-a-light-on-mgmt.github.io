@@ -84,6 +84,7 @@ img.streamicon {
 	display: flex;
   justify-content: center;
   align-items: center;
+	filter: invert(100%);
 	width: 10vw;
   	max-width: 100%;
  	height: auto;
