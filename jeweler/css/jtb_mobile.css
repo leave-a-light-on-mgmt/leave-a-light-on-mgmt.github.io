@@ -43,6 +43,7 @@ div.streamicons {
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+	margin-botton: 1em;
 }
 
 div.streamicons a {
