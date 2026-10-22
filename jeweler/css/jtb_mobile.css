@@ -153,6 +153,7 @@ iframe.bandcamp {
 	width: 89.5vw;
 	max-width: 700px;
 	height: 786px;
+	max-height: calc(98vh - var(--nav-height)); /* added 10/22/2026, remove if breaking */
 	display: block;
 	margin: 0 auto 1em auto;
 }
