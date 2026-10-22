@@ -71,7 +71,9 @@ img.bio-image {
 }
 
 img.instagram {
-	display: block;
+	display: flex;
+  justify-content: center;
+  align-items: center;
 	width: 10vw;
   	max-width: 100%;
  	height: auto;
