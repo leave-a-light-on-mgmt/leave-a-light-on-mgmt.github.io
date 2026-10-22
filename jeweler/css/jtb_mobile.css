@@ -36,6 +36,21 @@ div {
   align-items: center;
 }
 
+div.streamicons {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+div.streamicons a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .maincenter {
 	width: 89.5vw;
 	text-align: center;
