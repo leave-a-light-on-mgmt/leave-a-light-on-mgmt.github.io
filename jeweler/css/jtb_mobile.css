@@ -150,6 +150,16 @@ iframe {
   max-width: 100%;
 }
 
+iframe.video {
+	border: 0;
+	width: 89.5vw;
+	max-width: 700px;
+	height: auto; 
+	display: block;
+	margin: 0 auto 1em auto;
+	aspect-ratio: 16 / 9;
+}
+
 nav {
   position: sticky; /* Sticks the nav to the viewport */
   top: 0;       /* Locks it to the very top */
