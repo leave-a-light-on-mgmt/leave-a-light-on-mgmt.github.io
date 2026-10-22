@@ -105,6 +105,6 @@ nav a.active {
   text-decoration: underline;
 }
 
-.bandtitle a {
-	text-decoration: none;
+nav a.no-active.active {
+  text-decoration: none;
 }
