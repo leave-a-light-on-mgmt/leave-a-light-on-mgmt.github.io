@@ -80,6 +80,20 @@ img.instagram {
   	max-height: calc(98vh - var(--nav-height));
 }
 
+img.streamicon {
+	display: flex;
+  justify-content: center;
+  align-items: center;
+	width: 10vw;
+  	max-width: 100%;
+ 	height: auto;
+  	max-height: calc(98vh - var(--nav-height));
+}
+
+a.streamicon {
+
+}
+
 iframe {
   display: block;
   margin: auto;
