@@ -29,8 +29,11 @@
 
   		<main>
   			<nav id="site-nav">
-  				<a href="#jeweler"><h1>Jeweler</h1><a/>
-  				<a href="#music">music</a><a href="#video">video</a><a href="#social">social</a><a href="#press">press</a>
+  				<a href="#jeweler" class="nav-link"><h1>Jeweler</h1></a>
+  				<a href="#music" class="nav-link">music</a>
+  				<a href="#video" class="nav-link">video</a>
+  				<a href="#social" class="nav-link">social</a>
+  				<a href="#press" class="nav-link">press</a>
   			</nav>
 
 
@@ -41,77 +44,97 @@
   			<div class="bio">
 
   				<p>
-  					Jeweler is a Sacramento-based six-piece blending dream pop, shoegaze, and art rock with an ear for melody and atmosphere. Originally conceived as the home-recording project of songwriter Michael Voller in Minneapolis, the band released its debut LP, Tiny Circles, in 2021.
+  					Jeweler is a Sacramento-based six-piece blending dream pop, shoegaze, and art rock with an ear for melody and atmosphere. Originally conceived as the home-recording project of songwriter Michae[...]
   				</p>
 
   				<p>
-  					Combining shimmering guitars, layered vocal harmonies, synthesizers, and darker post-punk influences, Jeweler's music moves between dreamy, atmospheric passages and moments of noise and intensity. Since relocating to Northern California, Voller has continued to develop the project from his home studio, spending the intervening years writing and recording new material. With new music on the way, Jeweler's current six-piece lineup brings the project's layered compositions to life onstage.
+  					Combining shimmering guitars, layered vocal harmonies, synthesizers, and darker post-punk influences, Jeweler's music moves between dreamy, atmospheric passages and moments of noise and intensi[...]
   				</p>
 
   			</div>
 
   			<div id="music">
   				
-  				<iframe style="border: 0; width: 89.5vw; max-width: 700px; height: 786px; display: block; margin: 0 auto;" src="https://bandcamp.com/EmbeddedPlayer/album=2042221873/size=large/bgcol=ffffff/linkcol=333333/transparent=true/" seamless><a href="https://jewelertheband.bandcamp.com/album/tiny-circles">Tiny Circles by Jeweler</a></iframe>
+  				<iframe style="border: 0; width: 89.5vw; max-width: 700px; height: 786px; display: block; margin: 0 auto;" src="https://bandcamp.com/EmbeddedPlayer/album=2042221873/size=large/bgcol=ffffff/linkcol=0687f5/minimal=true/tracklist=false/tracklist-nav=false/artwork=small/transparent=true/" title="Jeweler bandcamp player"></iframe>
 
   			</div>
 
-			<div id="video">
-				
-			</div>
+ 			<div id="video">
+  				
+ 			</div>
+
+ 			<div id="social">
+ 				
+ 			</div>
+
+ 			<div id="press">
+ 				
+ 			</div>
 
 
   	</main>
 
 <script>
-    const nav = document.getElementById('site-nav');
+  const nav = document.getElementById('site-nav');
+  const bioImage = document.querySelector('.bio-image');
+  const navLinks = document.querySelectorAll('nav a[href^="#"]');
+  const targetSections = document.querySelectorAll('#jeweler, #music, #video, #social, #press');
 
-    function updateNavHeight() {
-      const navHeight = nav.getBoundingClientRect().height;
-      document.documentElement.style.setProperty('--nav-height', `${navHeight}px`);
-    }
+  function updateNavHeight() {
+    if (!nav) return;
+    const navHeight = nav.getBoundingClientRect().height;
+    document.documentElement.style.setProperty('--nav-height', `${navHeight}px`);
+  }
 
+  function updateImageWidth() {
+    if (!bioImage) return;
+    const width = bioImage.getBoundingClientRect().width;
+    document.documentElement.style.setProperty('--img-width', `${width}px`);
+  }
+
+  function setActiveLink() {
+    const offset = window.innerHeight * 0.35;
+    let currentId = '';
+
+    targetSections.forEach((section) => {
+      const rect = section.getBoundingClientRect();
+      if (rect.top <= offset && rect.bottom >= offset) {
+        currentId = section.id;
+      }
+    });
+
+    navLinks.forEach((link) => {
+      const isActive = link.getAttribute('href') === `#${currentId}`;
+      link.classList.toggle('active', isActive);
+    });
+  }
+
+  function updateLayout() {
     updateNavHeight();
-    window.addEventListener('resize', updateNavHeight);
-</script>
+    updateImageWidth();
+    setActiveLink();
+  }
 
-<script>
-	const navLinks = document.querySelectorAll('nav a[href^="#"]');
-const sections = document.querySelectorAll('section[id]');
+  document.addEventListener('DOMContentLoaded', () => {
+    updateLayout();
 
-const setActiveLink = () => {
-  let currentId = '';
+    window.addEventListener('resize', updateLayout);
+    window.addEventListener('scroll', setActiveLink, { passive: true });
 
-  sections.forEach(section => {
-    const rect = section.getBoundingClientRect();
-    if (rect.top <= window.innerHeight * 0.35 && rect.bottom >= window.innerHeight * 0.35) {
-      currentId = section.id;
+    if (bioImage) {
+      bioImage.addEventListener('load', updateImageWidth);
+    }
+
+    if ('ResizeObserver' in window) {
+      const resizeObserver = new ResizeObserver(() => {
+        updateLayout();
+      });
+
+      if (nav) resizeObserver.observe(nav);
+      if (bioImage) resizeObserver.observe(bioImage);
     }
   });
-
-  navLinks.forEach(link => {
-    const isActive = link.getAttribute('href') === `#${currentId}`;
-    link.classList.toggle('active', isActive);
-  });
-};
-
-window.addEventListener('scroll', setActiveLink);
-window.addEventListener('load', setActiveLink);
 </script>
-
-<script>
-const bioImage = document.querySelector('.bio-image');
-
-function updateImageWidth() {
-  const width = bioImage.getBoundingClientRect().width;
-  document.documentElement.style.setProperty('--img-width', `${width}px`);
-}
-
-updateImageWidth();
-window.addEventListener('resize', updateImageWidth);
-
-</script>
-	
+ 	
   </body>
  </html>
-
