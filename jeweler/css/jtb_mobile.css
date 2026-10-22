@@ -43,8 +43,22 @@ div.streamicons {
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
-	margin-botton: 1em;
+	margin-bottom: 1em;
 }
+
+div.footer a {
+	color: #000000;
+  text-decoration: none;
+  font-family: sans-serif;
+  font-weight: normal;
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+  transition: color 0.1s;
+}
+
+div.footer a:hover {
+	color: #999999;
+}
+	
 
 div.streamicons a {
   display: inline-flex;
@@ -155,7 +169,7 @@ a.instagram {
 }
 
 nav a:hover {
-  color: #999999; /* Changes color when hovered */
+  color: #999999;
 }
 
 nav a.active {
