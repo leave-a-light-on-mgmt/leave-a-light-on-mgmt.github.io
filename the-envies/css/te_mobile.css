@@ -15,8 +15,8 @@ body {
 
 h1 {
 	/* clamp(minimum, fluid preference, maximum) */
-  font-size: clamp(.5rem, .5rem + 2vw, 1rem);
-  padding-right: 2vw;
+  font-size: clamp(.5rem, .5rem + 2vw, .9rem);
+  padding-right: 3vw;
 }
 
 h3 {
