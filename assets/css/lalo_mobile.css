@@ -229,6 +229,10 @@ a.artist-link {
   overflow-wrap: anywhere;
 }
 
+a.artist-link:hover {
+	color: #999999;
+}
+
 nav a:hover {
   color: #999999;
 }
