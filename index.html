@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+	<head>
+<!-- Core syntax initialization and SEO -->
+		<meta charset="UTF-8">
+  		<meta name="description" content="Leave a Light On, MGMT">
+  		<meta name="keywords" content="Jeweler, dream pop, synth pop, goth, rock, indie rock, music, band, minneapolis, sacramento, alternative, shoegaze, art rock, indie, minnesota, california, booking, management, promotion, artist, representation">
+  		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  		<meta name="apple-mobile-web-app-title" content="Leave a Light On, MGMT" />
+
+<!-- Favicon and Base HREF -->
+
+  		<base href="https://leave-a-light-on-mgmt.github.io/">
+        <link rel="shortcut icon" type="image/png" href="assets/images/favicon.png">
+
+<!-- Call for stylesheets -->
+
+		<link rel="stylesheet" href="assets/css/lalo_mobile.css" />
+
+  	<!--	<link rel="stylesheet" media="screen and (orientation: landscape)" href="css/jtb_desktop.css" /> -->
+  	<!--	<link rel="stylesheet" media="screen and (orientation: portrait)" href="css/jtb_mobile.css" /> -->
+
+  		<title>Leave a Light On, MGMT</title>
+
+  	</head>
+
+  	<body>
+
+  		<main>
+  			<nav id="site-nav">
+  				<a href="#lalo" class="nav-link no-active"><h1>Leave a Light On</h1></a>
+				<a href="#artists" class="nav-link">artists</a>
+  				<a href="#social" class="nav-link">social</a>
+  			</nav>
+
+
+  			<div class="maincenter" id="lalo">
+  				<img class="bio-image" src="assets/images/lalobio.jpg" alt="Leave a Light On, MGMT">
+  			</div>
+
+  			<div class="bio">
+
+  				<p>
+  					Booking and artist representation for a small roster of independent bands.
+  				</p>
+
+  				<p>
+  					Leave a Light On started in 2025 as way to give bands I truly love the opportunity to get in front of more fans.
+  				</p>
+
+  			</div>
+
+  			<div id="artists">
+
+				<h3>artists</h3>
+
+        <p><a href="the-envies/index.html" target="_blank" class="press-link">The Envies</a></p>
+				<p><a href="jeweler/index.html" target="_blank" class="press-link">V13 - Music Video Premiere: "Don't Cry for Me"</a></p>
+
+  			</div>
+
+		  	<div id="social" class="bio">
+
+				<h3>Follow @leave.a.light.on.mgmt</h3>
+
+				<div class="socialicons">
+
+					<a href="https://instagram.com/leave.a.light.on.mgmt" class="instagram" target="_blank" title="Leave a Light On instagram page">
+						<img class="instagram" src="https://leave-a-light-on-mgmt.github.io/assets/images/instagramwhite.png"></a>
+					<a href="https://linktr.ee/leave.a.light.on.mgmt" class="instagram" target="_blank" title="Leave a Light On Linktree page">
+						<img class="instagram" src="https://leave-a-light-on-mgmt.github.io/assets/images/linktreewhite.png"></a>
+					
+				</div>
+
+				<!-- add back once ME sends blogpost about webcrawlers
+				<p>Contact EMAIL OBFUSCATION SCHEME for booking</p>
+				<p>Contact EMAIL OBFUSCATION SCHEME for press inquiries</p> -->
+				
+ 		  	</div>
+        
+<!-- Add Photo and Logo here, when they materialize
+			<div class="maincenter">
+				
+  				<img class="bio-image" src="images/jewelerbio2.jpg" alt="Jeweler - the band">
+				
+  			</div>
+
+			<div class="maincenter">
+				
+				<img class="bio-image" src="images/jewelerbanner.webp" alt="Jeweler - the band">
+
+			</div>
+
+        -->
+
+			<div class="footer">
+				
+				<p><a href="#top">Leave a Light On MGMT</a></p>
+ 				
+ 			</div>
+
+  	</main>
+
+<script>
+  const nav = document.getElementById('site-nav');
+  const bioImage = document.querySelector('.bio-image');
+  const navLinks = document.querySelectorAll('nav a[href^="#"]');
+  const targetSections = document.querySelectorAll('#lalo, #,artists, #social');
+
+  function updateNavHeight() {
+    if (!nav) return;
+    const navHeight = nav.getBoundingClientRect().height;
+    document.documentElement.style.setProperty('--nav-height', `${navHeight}px`);
+  }
+
+  function updateImageWidth() {
+    if (!bioImage) return;
+    const width = bioImage.getBoundingClientRect().width;
+    document.documentElement.style.setProperty('--img-width', `${width}px`);
+  }
+
+  function setActiveLink() {
+    const offset = window.innerHeight * 0.35;
+    let currentId = '';
+
+    targetSections.forEach((section) => {
+      const rect = section.getBoundingClientRect();
+      if (rect.top <= offset && rect.bottom >= offset) {
+        currentId = section.id;
+      }
+    });
+
+    navLinks.forEach((link) => {
+	if (link.classList.contains('no-active')) {
+    return;
+  }
+      const isActive = link.getAttribute('href') === `#${currentId}`;
+      link.classList.toggle('active', isActive);
+    });
+  }
+
+  function updateLayout() {
+    updateNavHeight();
+    updateImageWidth();
+    setActiveLink();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    updateLayout();
+
+    window.addEventListener('resize', updateLayout);
+    window.addEventListener('scroll', setActiveLink, { passive: true });
+
+    if (bioImage) {
+      bioImage.addEventListener('load', updateImageWidth);
+    }
+
+    if ('ResizeObserver' in window) {
+      const resizeObserver = new ResizeObserver(() => {
+        updateLayout();
+      });
+
+      if (nav) resizeObserver.observe(nav);
+      if (bioImage) resizeObserver.observe(bioImage);
+    }
+  });
+</script>
+ 	
+  </body>
+ </html>
