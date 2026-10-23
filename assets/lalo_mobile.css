@@ -98,6 +98,7 @@ div.streamicons a {
 
 #music,
 #video,
+#artists,
 #social,
 #press {
   scroll-margin-top: var(--nav-height);
