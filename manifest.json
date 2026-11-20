@@ -1,6 +1,6 @@
 {
   "name": "Leave a Light On, Radio",
-  "short_name": "RADIO MBLL",
+  "short_name": "RADIO",
   "description": "Internet radio",
   "start_url": "https://leave-a-light-on-mgmt.github.io/radio.html",
   "display": "standalone",
