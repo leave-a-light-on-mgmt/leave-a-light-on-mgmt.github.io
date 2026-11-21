@@ -27,12 +27,12 @@ body::before {
 }
 
 .sticky-header {
+	display: flex;
   background-color: rgba(255, 255, 255, 0.6);
   padding: 1rem;
 	/* Centers the audio player and header */
 	
 	flex-shrink: 0; /* Keeps the bar from getting squished */
-  background-color: rgba(20, 20, 20, 0.5); /* Can be as transparent as you want */
   backdrop-filter: blur(8px);
   justify-content: center;
   align-items: center;
