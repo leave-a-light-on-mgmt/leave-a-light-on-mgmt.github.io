@@ -35,15 +35,14 @@ backdrop-filter: blur(8px);
 	backdrop-filter: blur(10px);
 	display: flex;
   	padding: 1rem;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
 }
 
 .sticky-header {
 	
-	/* Centers the audio player and header */
-	
 	flex-shrink: 0; /* Keeps the bar from getting squished */
-  justify-content: center;
-  align-items: center;
 	flex-direction: column;
 }
 
@@ -65,7 +64,6 @@ justify-content: flex-start;
 }
 
 .footer {
-  text-align: center;
   padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
 }
 
