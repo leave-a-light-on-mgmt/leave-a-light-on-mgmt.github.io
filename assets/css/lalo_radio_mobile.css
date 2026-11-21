@@ -41,6 +41,7 @@ body::before {
 
 .content {
 	display: flex;
+	flex-direction: column;
 	justify-content: center;
 	align-items: center;
 	flex: 1; /* Fills the remaining height below the bar */
