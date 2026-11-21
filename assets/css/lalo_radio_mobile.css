@@ -27,12 +27,13 @@ body::before {
 }
 
 .sticky-header {
-  position: sticky;
-  top: 0; /* Distance from the top of the viewport where it locks */
-  z-index: 1000; /* Keeps it layered above other scrolling content */
   background-color: rgba(255, 255, 255, 0.6);
   padding: 1rem;
 	/* Centers the audio player and header */
+	
+	flex-shrink: 0; /* Keeps the bar from getting squished */
+  background-color: rgba(20, 20, 20, 0.5); /* Can be as transparent as you want */
+  backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -42,6 +43,13 @@ body::before {
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	flex: 1; /* Fills the remaining height below the bar */
+  overflow-y: auto; /* Only this area scrolls */
+  padding: 20rem;
+  max-width: 100vw;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 h1 {
