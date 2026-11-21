@@ -9,6 +9,7 @@ body {
   font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* Prevents the whole page from scrolling */
   text-decoration: none;
   font-family: sans-serif;
 	color: black;
