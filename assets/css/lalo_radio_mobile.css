@@ -21,7 +21,7 @@ body::before {
   position: fixed;
   inset: 0; /* Shorthand for top: 0; right: 0; bottom: 0; left: 0; */
   z-index: -1; /* Places the image behind all your page content */
- background-image: linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6)), url('https://leave-a-light-on-mgmt.github.io/assets/images/background.jpg');
+ background-image: linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0)), url('https://leave-a-light-on-mgmt.github.io/assets/images/background.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -31,8 +31,6 @@ backdrop-filter: blur(8px);
 .sticky-header,
 .footer {
   	flex: 0 0 auto; /* Keep header and footer at their natural height */
-	background-color: rgba(255, 255, 255, .6);
-	backdrop-filter: blur(10px);
 	display: flex;
   	padding: .75rem;
 	justify-content: center;
@@ -41,7 +39,8 @@ backdrop-filter: blur(8px);
 }
 
 .sticky-header {
-	
+	background-color: rgba(255, 255, 255, .6);
+	backdrop-filter: blur(10px);
 	flex-shrink: 0; /* Keeps the bar from getting squished */
 	flex-direction: column;
 }
@@ -64,7 +63,8 @@ backdrop-filter: blur(8px);
 }
 
 .footer {
-  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+	background-color: rgba(255, 255, 255, 0);
+	padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
 }
 
 audio {
