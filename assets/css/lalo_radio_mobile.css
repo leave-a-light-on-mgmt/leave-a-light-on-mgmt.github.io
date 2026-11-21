@@ -34,7 +34,6 @@ body::before {
 	flex-shrink: 0; /* Keeps the bar from getting squished */
   background-color: rgba(20, 20, 20, 0.5); /* Can be as transparent as you want */
   backdrop-filter: blur(8px);
-  display: flex;
   justify-content: center;
   align-items: center;
 }
