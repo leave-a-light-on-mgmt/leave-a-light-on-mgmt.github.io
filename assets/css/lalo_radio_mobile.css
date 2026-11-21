@@ -3,14 +3,28 @@ html {
 }
 
 body {
+  margin: 0; /* Removes default browser spacing */
+  min-height: 100vh; /* Ensures the background fills at least the full screen height */
+	background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://leave-a-light-on-mgmt.github.io/assets/images/background.jpg');
+  background-size: cover; /* Scales the image to fill the screen without distorting it */
+  background-position: center; /* Keeps the image centered as the window resizes */
+  background-repeat: no-repeat; /* Prevents the image from tiling */
+  background-attachment: fixed; /* Keeps the background still while content scrolls over it */
+	
   /* 1rem base + 1% of viewport width */
   font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
-  margin: 0;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
   text-decoration: none;
   font-family: sans-serif;
+}
+
+.sticky-header {
+  position: sticky;
+  top: 0; /* Distance from the top of the viewport where it locks */
+  z-index: 1000; /* Keeps it layered above other scrolling content */
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 1rem;
 }
 
 h1 {
