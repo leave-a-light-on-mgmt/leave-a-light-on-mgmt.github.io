@@ -96,8 +96,8 @@ h4 {
 
 p {
 	width: 100%;
-  padding: 0;
-  text-align: center;
+	padding: 0;
+	text-align: center;
 }
 
 .footer h3 {
@@ -105,7 +105,14 @@ p {
 }
 
 a {
-  color: #000000;
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
+	color: #000000;
+	text-decoration: underline;
+	text-underline-offset: 0.15em;
+}
+
+.highlight {
+	/* this code addresses the white highlight of text */
+	width: fit-content;
+	background-color: rgba(255, 255, 255, 0.85);
+	border-radius: 0.25em;
 }
