@@ -32,18 +32,28 @@
       			  <source src="https://home-jelly.tail7f8e3a.ts.net/stream.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
 			    </audio>
+				<h3>Recently played:</h3>
+				<div id="radio-widget" style="display: flex; align-items: center; gap: 12px;">
+  <img
+    id="album-art"
+    src=""
+    alt="Album Cover"
+    style="width: 64px; height: 64px; border-radius: 6px; object-fit: cover; display: none;"
+  />
+  <div id="now-playing">Loading track info...</div>
+</div>
 			</div>
 			<div class="secondary">
-				<h4 class="highlight">Press Play to start.</h4>
-  				<p class="highlight">Once the music is playing, you may leave the app or lock your screen - the music will continue.</p>
-				<h4 class="highlight">Music stopped?</h4>
-				<p class="highlight">Wait a moment or two for buffering. If sound doesn't return, then try hitting pause, then play again.<br>You may need to refresh the page, or close and reopen the app. I'm working on it!</p>
-				<h4 class="highlight">For a home screen app:</h4>
-				<p class="highlight">Tap Share or "...", then look for<br>Add to Home Screen.</p>
-				<p class="highlight">On iPhone, do the above from Safari to use the customized app icon.</p>
-				<h4 class="highlight">What is this?</h4>
-				<p class="highlight">You're listening to a broadcast of music from my personal collection, off my home server. I compile the playlist, and update it when I have time. If the stream is down for a prolonged period of time, it's possibly because my power went out.</p>
-				<p class="highlight">Thanks for listening. I hope you're enjoying it.</p>
+				<h4>Press Play to start.</h4>
+  				<p>Once the music is playing, you may leave the app or lock your screen - the music will continue.</p>
+				<h4>Music stopped?</h4>
+				<p>Wait a moment or two for buffering. If sound doesn't return, then try hitting pause, then play again.<br>You may need to refresh the page, or close and reopen the app. I'm working on it!</p>
+				<h4>For a home screen app:</h4>
+				<p>Tap Share or "...", then look for<br>Add to Home Screen.</p>
+				<p>On iPhone, do the above from Safari to use the customized app icon.</p>
+				<h4>What is this?</h4>
+				<p>You're listening to a broadcast of music from my personal collection, off my home server. I compile the playlist, and update it when I have time. If the stream is down for a prolonged period of time, it's possibly because my power went out.</p>
+				<p>Thanks for listening. I hope you're enjoying it.</p>
   			</div>
 			<div class="footer">
 				<a href="https://forms.gle/Q8EWWNznpbjQqGtA9" target="_blank"><h3>Song Request Form</h3></a>
@@ -61,6 +71,50 @@
         });
     });
   }
+</script>
+<!-- Recently Played from Last.FM -->
+<script>
+  const username = "lalomgmt";
+  const apiKey = "b803227f3a61a58568f98da5cc6219f6";
+  const url = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${username}&api_key=${apiKey}&format=json&limit=1`;
+
+  async function updateNowPlaying() {
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      const track = data.recenttracks.track[0];
+
+      if (track) {
+        const artist = track.artist["#text"];
+        const title = track.name;
+        const isPlaying = track["@attr"] && track["@attr"].nowplaying === "true";
+
+        // Update the text
+        document.getElementById("now-playing").textContent = isPlaying
+          ? `Now Playing: ${artist} — ${title}`
+          : `Last Played: ${artist} — ${title}`;
+
+        // Grab the medium/large album cover (index 2 is "large", 174x174px)
+        const artElement = document.getElementById("album-art");
+        const coverUrl = track.image?.[2]?.["#text"] || track.image?.[1]?.["#text"];
+
+        if (coverUrl) {
+          artElement.src = coverUrl;
+          artElement.style.display = "block";
+        } else {
+          artElement.src = "https://leave-a-light-on-mgmt.github.io/icon-192x192.png";
+			artElement.style.display = "block";
+        }
+      }
+    } catch (error) {
+      document.getElementById("now-playing").textContent = "Track info unavailable";
+      document.getElementById("album-art").style.display = "none";
+    }
+  }
+
+  // Fetch immediately, then refresh every 15 seconds
+  updateNowPlaying();
+  setInterval(updateNowPlaying, 15000);
 </script>
 	</body>
  </html>
