@@ -28,7 +28,7 @@ body::before {
 backdrop-filter: blur(8px);
 }
 
-.sticky-header,
+.primary,
 .footer {
   	flex: 0 0 auto; /* Keep header and footer at their natural height */
 	display: flex;
@@ -40,12 +40,12 @@ backdrop-filter: blur(8px);
 	backdrop-filter: blur(10px);
 }
 
-.sticky-header {
+.primary {
 	flex-shrink: 0; /* Keeps the bar from getting squished */
 	flex-direction: column;
 }
 
-.content {
+.secondary {
 	flex: 1 1 0;
 	min-height: 0; /* Lets this flex item fit in the space below the header */
 	-webkit-overflow-scrolling: touch; /* Smoother scrolling on iOS */
