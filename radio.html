@@ -129,75 +129,126 @@
 
 // vvv THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
 
-const STREAM_URL = "https://home-jelly.tail7f8e3a.ts.net/stream.mp3";
 const player = document.getElementById("radio-player");
+const STREAM_URL = "https://home-jelly.tail7f8e3a.ts.net/stream.mp3";
 
+let wantsToPlay = false;
 let pausedAt = 0;
+let watchdogTimer = null;
 
-function setPlaybackState(state) {
-    if ("mediaSession" in navigator) {
-        try {
-            navigator.mediaSession.playbackState = state;
-        } catch (e) {}
-    }
+function clearWatchdog() {
+  if (watchdogTimer) {
+    clearTimeout(watchdogTimer);
+    watchdogTimer = null;
+  }
 }
 
-function startFreshStream() {
-    pausedAt = 0;
-    player.src = `${STREAM_URL}?t=${Date.now()}`;
-    player.load();
-    return player.play()
-        .then(() => setPlaybackState("playing"))
-        .catch(err => console.warn("Stream start failed:", err));
+function setSessionState(state) {
+  if ("mediaSession" in navigator) {
+    navigator.mediaSession.playbackState = state;
+  }
 }
 
-function pauseStream() {
-    pausedAt = Date.now();
-    player.pause();
-    setPlaybackState("paused");
+function reconnectFresh() {
+  clearWatchdog();
+  wantsToPlay = true;
+
+  // Assigning src starts loading automatically without an extra .load() reset
+  player.src = `${STREAM_URL}?t=${Date.now()}`;
+  const playPromise = player.play();
+
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => setSessionState("playing"))
+      .catch((err) => console.error("Reconnect failed:", err));
+  }
 }
 
 function resumeStream() {
-    const pauseDuration = pausedAt ? Date.now() - pausedAt : 0;
-    pausedAt = 0;
+  clearWatchdog();
+  wantsToPlay = true;
 
-    // Only swap src to jump to live when the app is in the foreground.
-    // On the Lock Screen (document.hidden), resume the existing pipeline directly.
-    if (!document.hidden && pauseDuration > 10000) {
-        return startFreshStream();
+  const pauseDuration = pausedAt ? Date.now() - pausedAt : Infinity;
+
+  // Foreground resume or first start: jump straight to the live edge
+  if (!document.hidden || !player.src) {
+    reconnectFresh();
+    return;
+  }
+
+  // Background/Lock Screen resume: wake the existing audio handle first
+  const startTime = player.currentTime;
+  const playPromise = player.play();
+
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        setSessionState("playing");
+        // Audio session is awake; swap to live edge if paused longer than 5s
+        if (pauseDuration > 5000) {
+          reconnectFresh();
+        }
+      })
+      .catch(() => {
+        // Stale socket rejected; open a fresh stream URL
+        reconnectFresh();
+      });
+  }
+
+  // Watchdog: break out of a silent hang if playback doesn't advance in 3s
+  watchdogTimer = setTimeout(() => {
+    if (wantsToPlay && (player.paused || player.currentTime === startTime)) {
+      reconnectFresh();
     }
-
-    return player.play()
-        .then(() => setPlaybackState("playing"))
-        .catch(() => {
-            // If the TCP connection timed out during a long pause, try a fresh load
-            return startFreshStream();
-        });
+  }, 3000);
 }
 
-// Keep state synced when iOS/Firefox controls the <audio> element natively
-player.addEventListener("pause", () => {
-    if (!pausedAt) pausedAt = Date.now();
-    setPlaybackState("paused");
-});
+function pauseStream() {
+  clearWatchdog();
+  wantsToPlay = false;
+  pausedAt = Date.now();
+  player.pause();
+  setSessionState("paused");
+}
 
-player.addEventListener("play", () => {
-    const pauseDuration = pausedAt ? Date.now() - pausedAt : 0;
-    pausedAt = 0;
-
-    if (!document.hidden && pauseDuration > 10000) {
-        startFreshStream();
-        return;
+// Auto-recover the moment the screen wakes back to the browser
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && wantsToPlay) {
+    if (player.paused || player.readyState < 3) {
+      reconnectFresh();
     }
-    setPlaybackState("playing");
+  }
 });
 
-// Wire up Lock Screen controls safely (some WKWebView builds partially support MediaSession)
+player.addEventListener("playing", () => {
+  clearWatchdog();
+  setSessionState("playing");
+});
+
+player.addEventListener("stalled", () => {
+  if (!wantsToPlay) return;
+  clearWatchdog();
+  watchdogTimer = setTimeout(() => {
+    if (wantsToPlay && player.readyState < 3) {
+      reconnectFresh();
+    }
+  }, 3000);
+});
+
+player.addEventListener("error", () => {
+  if (wantsToPlay) {
+    reconnectFresh();
+  }
+});
+
 if ("mediaSession" in navigator) {
-    try {
-        navigator.mediaSession.setActionHandler("play", () => resumeStream());
-        navigator.mediaSession.setActionHandler("pause", () => pauseStream());
-    } catch (e) {}
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: "Live Radio",
+    artist: "Personal Stream"
+  });
+
+  navigator.mediaSession.setActionHandler("play", resumeStream);
+  navigator.mediaSession.setActionHandler("pause", pauseStream);
 }
 	
 // ^^^ THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
