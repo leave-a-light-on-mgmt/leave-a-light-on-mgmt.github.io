@@ -29,7 +29,7 @@
   			<div class="primary">
 				<h3>RADIO</h3>
 				<audio
-					id="radio-player"
+					id="player"
 					controls
 					preload="none"
 					src="https://home-jelly.tail7f8e3a.ts.net/stream.mp3"
@@ -129,77 +129,107 @@
 
 // vvv THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
 
-const STREAM_URL = "https://home-jelly.tail7f8e3a.ts.net/stream.mp3";
-const player = document.getElementById("radio-player");
+const player = document.getElementById("player");
+const streamUrl = "https://home-jelly.tail7f8e3a.ts.net/stream.mp3";
 
-let pausedAt = 0;
+let isStale = false;
+let isReconnecting = false;
 
-function setPlaybackState(state) {
-    if ("mediaSession" in navigator) {
-        try {
-            navigator.mediaSession.playbackState = state;
-        } catch (e) {}
-    }
+// Tell iOS Safari this tab is a dedicated media player (where supported)
+if ("audioSession" in navigator) {
+  try {
+    navigator.audioSession.type = "playback";
+  } catch (e) {}
 }
 
-function startFreshStream() {
-    pausedAt = 0;
-    player.src = `${STREAM_URL}?t=${Date.now()}`;
-    player.load();
-    return player.play()
-        .then(() => setPlaybackState("playing"))
-        .catch(err => console.warn("Stream start failed:", err));
+function registerMediaSessionHandlers() {
+  if (!("mediaSession" in navigator)) return;
+
+  try {
+    navigator.mediaSession.setActionHandler("play", () => {
+      connectAndPlay();
+    });
+    navigator.mediaSession.setActionHandler("pause", () => {
+      player.pause();
+    });
+    // Clear skip handlers so mobile lock screens don't override play/pause behavior
+    navigator.mediaSession.setActionHandler("seekbackward", null);
+    navigator.mediaSession.setActionHandler("seekforward", null);
+  } catch (e) {
+    console.warn("MediaSession handler setup failed:", e);
+  }
 }
 
-function pauseStream() {
-    pausedAt = Date.now();
+function connectAndPlay() {
+  if (isReconnecting) return;
+
+  isReconnecting = true;
+  isStale = false;
+
+  // 1. Pause first so a native resume doesn't collide with the src swap
+  if (!player.paused) {
     player.pause();
-    setPlaybackState("paused");
+  }
+
+  // 2. Point to a fresh live URL and explicitly reset the media pipeline
+  player.src = `${streamUrl}?t=${Date.now()}`;
+  player.load();
+
+  // 3. Start playback immediately inside the same event tick
+  const playPromise = player.play();
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        isReconnecting = false;
+      })
+      .catch((err) => {
+        isReconnecting = false;
+        isStale = true; // Allow the next tap to retry cleanly
+        if ("mediaSession" in navigator) {
+          navigator.mediaSession.playbackState = "paused";
+        }
+        console.error("Stream play failed:", err);
+      });
+  } else {
+    isReconnecting = false;
+  }
 }
 
-function resumeStream() {
-    const pauseDuration = pausedAt ? Date.now() - pausedAt : 0;
-    pausedAt = 0;
+// Re-bind handlers once audio is genuinely playing (critical for iOS Lock Screen)
+player.addEventListener("playing", () => {
+  isReconnecting = false;
+  registerMediaSessionHandlers();
+  if ("mediaSession" in navigator) {
+    navigator.mediaSession.playbackState = "playing";
+  }
+});
 
-    // Only swap src to jump to live when the app is in the foreground.
-    // On the Lock Screen (document.hidden), resume the existing pipeline directly.
-    if (!document.hidden && pauseDuration > 10000) {
-        return startFreshStream();
-    }
-
-    return player.play()
-        .then(() => setPlaybackState("playing"))
-        .catch(() => {
-            // If the TCP connection timed out during a long pause, try a fresh load
-            return startFreshStream();
-        });
-}
-
-// Keep state synced when iOS/Firefox controls the <audio> element natively
+// Mark the buffer stale only on real pauses
 player.addEventListener("pause", () => {
-    if (!pausedAt) pausedAt = Date.now();
-    setPlaybackState("paused");
-});
-
-player.addEventListener("play", () => {
-    const pauseDuration = pausedAt ? Date.now() - pausedAt : 0;
-    pausedAt = 0;
-
-    if (!document.hidden && pauseDuration > 10000) {
-        startFreshStream();
-        return;
+  if (!isReconnecting) {
+    isStale = true;
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.playbackState = "paused";
     }
-    setPlaybackState("playing");
+  }
 });
 
-// Wire up Lock Screen controls safely (some WKWebView builds partially support MediaSession)
-if ("mediaSession" in navigator) {
-    try {
-        navigator.mediaSession.setActionHandler("play", () => resumeStream());
-        navigator.mediaSession.setActionHandler("pause", () => pauseStream());
-    } catch (e) {}
-}
-	
+// Catch in-app Play button clicks after a pause
+player.addEventListener("play", () => {
+  if (isStale && !isReconnecting) {
+    connectAndPlay();
+  }
+});
+
+// Reset state if a background reconnect drops or errors
+player.addEventListener("error", () => {
+  isReconnecting = false;
+  isStale = true;
+});
+
+// Register on initial load (refreshed again on every "playing" event)
+registerMediaSessionHandlers();
+
 // ^^^ THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
 	
 </script>
