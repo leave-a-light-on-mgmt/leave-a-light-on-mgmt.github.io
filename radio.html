@@ -131,17 +131,44 @@
 
 const player = document.getElementById("radio-player");
 const STREAM_URL = "https://home-jelly.tail7f8e3a.ts.net/stream.mp3";
+const STANDBY_LIMIT_MS = 7 * 60 * 1000; // Shut down standby after 7 minutes to save battery
 
-let wantsToPlay = false;
-let pausedAt = 0;
-let watchdogTimer = null;
+let isSoftPaused = false;
+let isSwitching = false;
+let standbyTimer = null;
 
-function clearWatchdog() {
-  if (watchdogTimer) {
-    clearTimeout(watchdogTimer);
-    watchdogTimer = null;
-  }
+// Build a 1-second silent WAV file locally in RAM (uses 0 network data)
+function createSilentWavUrl() {
+  const sampleRate = 44100;
+  const dataSize = sampleRate * 2; // 1 second of 16-bit mono PCM
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+
+  const writeString = (offset, str) => {
+    for (let i = 0; i < str.length; i++) {
+      view.setUint8(offset + i, str.charCodeAt(i));
+    }
+  };
+
+  writeString(0, "RIFF");
+  view.setUint32(4, 36 + dataSize, true);
+  writeString(8, "WAVE");
+  writeString(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);               // PCM format
+  view.setUint16(22, 1, true);               // Mono
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);  // Byte rate
+  view.setUint16(32, 2, true);               // Block align
+  view.setUint16(34, 16, true);              // Bits per sample
+  writeString(36, "data");
+  view.setUint32(40, dataSize, true);
+  // Bytes 44+ are already 0 (digital silence)
+
+  return URL.createObjectURL(new Blob([buffer], { type: "audio/wav" }));
 }
+
+const SILENT_URL = createSilentWavUrl();
 
 function setSessionState(state) {
   if ("mediaSession" in navigator) {
@@ -149,106 +176,111 @@ function setSessionState(state) {
   }
 }
 
-function reconnectFresh() {
-  clearWatchdog();
-  wantsToPlay = true;
+function clearStandbyTimer() {
+  if (standbyTimer) {
+    clearTimeout(standbyTimer);
+    standbyTimer = null;
+  }
+}
 
-  // Assigning src starts loading automatically without an extra .load() reset
+function playLiveStream() {
+  clearStandbyTimer();
+  isSoftPaused = false;
+  isSwitching = true;
+
+  player.loop = false;
   player.src = `${STREAM_URL}?t=${Date.now()}`;
-  const playPromise = player.play();
 
-  if (playPromise !== undefined) {
-    playPromise
-      .then(() => setSessionState("playing"))
-      .catch((err) => console.error("Reconnect failed:", err));
-  }
+  player.play()
+    .then(() => {
+      isSwitching = false;
+      setSessionState("playing");
+    })
+    .catch((err) => {
+      isSwitching = false;
+      console.error("Could not start live stream:", err);
+    });
 }
 
-function resumeStream() {
-  clearWatchdog();
-  wantsToPlay = true;
+function stopCompletely() {
+  clearStandbyTimer();
+  isSoftPaused = false;
+  isSwitching = true;
 
-  const pauseDuration = pausedAt ? Date.now() - pausedAt : Infinity;
-
-  // Foreground resume or first start: jump straight to the live edge
-  if (!document.hidden || !player.src) {
-    reconnectFresh();
-    return;
-  }
-
-  // Background/Lock Screen resume: wake the existing audio handle first
-  const startTime = player.currentTime;
-  const playPromise = player.play();
-
-  if (playPromise !== undefined) {
-    playPromise
-      .then(() => {
-        setSessionState("playing");
-        // Audio session is awake; swap to live edge if paused longer than 5s
-        if (pauseDuration > 5000) {
-          reconnectFresh();
-        }
-      })
-      .catch(() => {
-        // Stale socket rejected; open a fresh stream URL
-        reconnectFresh();
-      });
-  }
-
-  // Watchdog: break out of a silent hang if playback doesn't advance in 3s
-  watchdogTimer = setTimeout(() => {
-    if (wantsToPlay && (player.paused || player.currentTime === startTime)) {
-      reconnectFresh();
-    }
-  }, 3000);
-}
-
-function pauseStream() {
-  clearWatchdog();
-  wantsToPlay = false;
-  pausedAt = Date.now();
+  player.loop = false;
   player.pause();
+  // Park src on the local silent Blob so the HTTP stream closes immediately
+  // while keeping the native <audio> Play button clickable
+  player.src = SILENT_URL;
   setSessionState("paused");
+
+  isSwitching = false;
 }
 
-// Auto-recover the moment the screen wakes back to the browser
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && wantsToPlay) {
-    if (player.paused || player.readyState < 3) {
-      reconnectFresh();
+function enterZeroDataStandby() {
+  clearStandbyTimer();
+  isSoftPaused = true;
+  isSwitching = true;
+
+  // Immediately sever the live stream and loop local in-memory silence
+  player.src = SILENT_URL;
+  player.loop = true;
+
+  player.play()
+    .then(() => {
+      isSwitching = false;
+      setSessionState("paused");
+    })
+    .catch(() => {
+      isSwitching = false;
+      stopCompletely();
+    });
+
+  // Release the audio session after the timeout so battery isn't drained
+  standbyTimer = setTimeout(() => {
+    if (isSoftPaused) {
+      stopCompletely();
     }
+  }, STANDBY_LIMIT_MS);
+}
+
+// In-page Play: always jump to a fresh live connection after a pause
+player.addEventListener("play", () => {
+  if (!isSwitching && !isSoftPaused && player.src === SILENT_URL) {
+    playLiveStream();
   }
 });
 
-player.addEventListener("playing", () => {
-  clearWatchdog();
-  setSessionState("playing");
-});
+// In-page Pause: stop cleanly and drop the live stream immediately
+player.addEventListener("pause", () => {
+  if (isSwitching) return;
 
-player.addEventListener("stalled", () => {
-  if (!wantsToPlay) return;
-  clearWatchdog();
-  watchdogTimer = setTimeout(() => {
-    if (wantsToPlay && player.readyState < 3) {
-      reconnectFresh();
-    }
-  }, 3000);
-});
-
-player.addEventListener("error", () => {
-  if (wantsToPlay) {
-    reconnectFresh();
+  if (!isSoftPaused && player.src !== SILENT_URL) {
+    stopCompletely();
+  } else if (!document.hidden && isSoftPaused) {
+    stopCompletely();
   }
 });
 
+// Lock Screen and headphone controls
 if ("mediaSession" in navigator) {
-  navigator.mediaSession.metadata = new MediaMetadata({
-    title: "Live Radio",
-    artist: "Personal Stream"
+  navigator.mediaSession.setActionHandler("pause", () => {
+    // Fallback for iOS: if the Lock Screen still shows a Pause icon during
+    // silent standby, treat a second tap as a request to resume live audio
+    if (isSoftPaused) {
+      playLiveStream();
+      return;
+    }
+    enterZeroDataStandby();
   });
 
-  navigator.mediaSession.setActionHandler("play", resumeStream);
-  navigator.mediaSession.setActionHandler("pause", pauseStream);
+  navigator.mediaSession.setActionHandler("play", () => {
+    playLiveStream();
+  });
+
+  navigator.mediaSession.setActionHandler("stop", () => {
+    stopCompletely();
+  });
 }
 	
 // ^^^ THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
