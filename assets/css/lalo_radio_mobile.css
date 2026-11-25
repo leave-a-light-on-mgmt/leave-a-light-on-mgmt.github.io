@@ -21,11 +21,11 @@ body::before {
   position: fixed;
   inset: 0; /* Shorthand for top: 0; right: 0; bottom: 0; left: 0; */
   z-index: -1; /* Places the image behind all your page content */
- background-image: linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6)), url('https://leave-a-light-on-mgmt.github.io/assets/images/background.jpg');
+ background-image: linear-gradient(rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.55)), url('https://leave-a-light-on-mgmt.github.io/assets/images/background.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-	backdrop-filter: blur(10px);
+	backdrop-filter: blur(15px);
 }
 
 .primary,
