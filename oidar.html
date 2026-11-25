@@ -28,6 +28,12 @@
   	<body>
   			<div class="primary">
 				<h3>RADIO</h3>
+				<audio
+					id="radio-player"
+					controls
+					preload="none"
+					src="https://home-jelly.tail7f8e3a.ts.net/stream.mp3"
+					/>Your browser does not support the audio element.</audio>
   				<audio id="radio-player" controls preload="none">
       			  <source src="https://home-jelly.tail7f8e3a.ts.net/stream.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
@@ -124,37 +130,79 @@
   updateNowPlaying();
   setInterval(updateNowPlaying, 15000);
 
-// vvv THIS PART FIXES THE PLAYER PLAYING OLD AUDIO
-const streamUrl = "https://home-jelly.tail7f8e3a.ts.net/stream.mp3";
+// vvv THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
+const streamUrl = "https://your-tailscale-url.ts.net/stream.mp3";
 const player = document.getElementById("radio-player");
-let isStale = false;
 
-// Mark the stream as stale whenever you pause
+let isStale = false;
+let isReconnecting = false;
+
+function connectAndPlay() {
+  isReconnecting = true;
+  isStale = false;
+
+  // Assigning .src automatically resets the media pipeline
+  player.src = `${streamUrl}?t=${Date.now()}`;
+
+  const playPromise = player.play();
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        isReconnecting = false;
+        if ("mediaSession" in navigator) {
+          navigator.mediaSession.playbackState = "playing";
+        }
+      })
+      .catch((err) => {
+        isReconnecting = false;
+        isStale = true;
+        if ("mediaSession" in navigator) {
+          navigator.mediaSession.playbackState = "paused";
+        }
+        console.warn("Stream could not restart:", err);
+      });
+  } else {
+    isReconnecting = false;
+  }
+}
+
+// Track pauses and dropped connections
 player.addEventListener("pause", () => {
+  if (!isReconnecting) {
+    isStale = true;
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.playbackState = "paused";
+    }
+  }
+});
+
+player.addEventListener("ended", () => {
   isStale = true;
 });
 
-// Jump to the live edge when pressing play again
+player.addEventListener("error", () => {
+  isStale = true;
+});
+
+// Handle pressing Play inside the web app
 player.addEventListener("play", () => {
+  if (isReconnecting) return;
+
   if (isStale) {
-    isStale = false;
-    player.src = `${streamUrl}?t=${Date.now()}`;
-    player.load();
-    player.play();
+    connectAndPlay();
+  } else if ("mediaSession" in navigator) {
+    navigator.mediaSession.playbackState = "playing";
   }
 });
-// ^^^ THIS PART FIXES THE PLAYER PLAYING OLD AUDIO
 
-// vvv THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
-	if ("mediaSession" in navigator) {
+// Handle Lock Screen and headphone controls
+if ("mediaSession" in navigator) {
   navigator.mediaSession.setActionHandler("play", () => {
-    isStale = false;
-    player.src = `${streamUrl}?t=${Date.now()}`;
-    player.load();
-    player.play();
+    connectAndPlay();
   });
 
   navigator.mediaSession.setActionHandler("pause", () => {
+    isReconnecting = false;
     player.pause();
   });
 }
