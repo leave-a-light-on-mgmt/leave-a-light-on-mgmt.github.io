@@ -28,10 +28,13 @@
   	<body>
   			<div class="primary">
 				<h3>RADIO</h3>
-  				<audio controls preload="none" autoplay>
-      			  <source src="https://home-jelly.tail7f8e3a.ts.net/stream.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-			    </audio><p></p>
+				<audio
+					id="radio-player"
+					controls
+					preload="none"
+					src="https://home-jelly.tail7f8e3a.ts.net/stream.mp3"
+					>Your browser does not support the audio element.</audio>
+  				<p></p>
 				<div id="radio-widget" style="display: flex; align-items: center; gap: 12px;">
 					<img id="album-art" src="" alt="Album Cover" style="width: 64px; height: 64px; border-radius: 6px; object-fit: cover; display: none;"/>
   					<div id="now-playing">Loading track info...</div>
@@ -67,7 +70,8 @@
     });
   }
 </script>
-<!-- Recently Played from Last.FM -->
+		
+<!-- Recently Played from Last.FM, that pushes Metadata out to lock screen -->
 <script>
   const username = "lalomgmt";
   const apiKey = "b803227f3a61a58568f98da5cc6219f6";
@@ -82,14 +86,15 @@
       if (track) {
         const artist = track.artist["#text"];
         const title = track.name;
+        const album = track.album?.["#text"] || "Home Radio";
         const isPlaying = track["@attr"] && track["@attr"].nowplaying === "true";
 
-        // Update the text
+        // 1. Update the on-page text
         document.getElementById("now-playing").textContent = isPlaying
           ? `Now Playing: ${artist} — ${title}`
           : `Last Played: ${artist} — ${title}`;
 
-        // Grab the medium/large album cover (index 2 is "large", 174x174px)
+        // 2. Update the on-page album art
         const artElement = document.getElementById("album-art");
         const coverUrl = track.image?.[2]?.["#text"] || track.image?.[1]?.["#text"];
 
@@ -97,8 +102,19 @@
           artElement.src = coverUrl;
           artElement.style.display = "block";
         } else {
-          artElement.src = "https://leave-a-light-on-mgmt.github.io/icon-192x192.png";
-			artElement.style.display = "block";
+          artElement.style.display = "none";
+        }
+
+        // 3. Push metadata to the Lock Screen media player
+        if ("mediaSession" in navigator) {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: title,
+            artist: artist,
+            album: album,
+            artwork: coverUrl
+              ? [{ src: coverUrl, sizes: "174x174", type: "image/jpeg" }]
+              : []
+          });
         }
       }
     } catch (error) {
@@ -110,6 +126,133 @@
   // Fetch immediately, then refresh every 15 seconds
   updateNowPlaying();
   setInterval(updateNowPlaying, 15000);
+
+// vvv THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
+
+const player = document.getElementById("radio-player");
+const STREAM_URL = "https://home-jelly.tail7f8e3a.ts.net/stream.mp3";
+
+let wantsToPlay = false;
+let pausedAt = 0;
+let watchdogTimer = null;
+
+function clearWatchdog() {
+  if (watchdogTimer) {
+    clearTimeout(watchdogTimer);
+    watchdogTimer = null;
+  }
+}
+
+function setSessionState(state) {
+  if ("mediaSession" in navigator) {
+    navigator.mediaSession.playbackState = state;
+  }
+}
+
+function reconnectFresh() {
+  clearWatchdog();
+  wantsToPlay = true;
+
+  // Assigning src starts loading automatically without an extra .load() reset
+  player.src = `${STREAM_URL}?t=${Date.now()}`;
+  const playPromise = player.play();
+
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => setSessionState("playing"))
+      .catch((err) => console.error("Reconnect failed:", err));
+  }
+}
+
+function resumeStream() {
+  clearWatchdog();
+  wantsToPlay = true;
+
+  const pauseDuration = pausedAt ? Date.now() - pausedAt : Infinity;
+
+  // Foreground resume or first start: jump straight to the live edge
+  if (!document.hidden || !player.src) {
+    reconnectFresh();
+    return;
+  }
+
+  // Background/Lock Screen resume: wake the existing audio handle first
+  const startTime = player.currentTime;
+  const playPromise = player.play();
+
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        setSessionState("playing");
+        // Audio session is awake; swap to live edge if paused longer than 5s
+        if (pauseDuration > 5000) {
+          reconnectFresh();
+        }
+      })
+      .catch(() => {
+        // Stale socket rejected; open a fresh stream URL
+        reconnectFresh();
+      });
+  }
+
+  // Watchdog: break out of a silent hang if playback doesn't advance in 3s
+  watchdogTimer = setTimeout(() => {
+    if (wantsToPlay && (player.paused || player.currentTime === startTime)) {
+      reconnectFresh();
+    }
+  }, 3000);
+}
+
+function pauseStream() {
+  clearWatchdog();
+  wantsToPlay = false;
+  pausedAt = Date.now();
+  player.pause();
+  setSessionState("paused");
+}
+
+// Auto-recover the moment the screen wakes back to the browser
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && wantsToPlay) {
+    if (player.paused || player.readyState < 3) {
+      reconnectFresh();
+    }
+  }
+});
+
+player.addEventListener("playing", () => {
+  clearWatchdog();
+  setSessionState("playing");
+});
+
+player.addEventListener("stalled", () => {
+  if (!wantsToPlay) return;
+  clearWatchdog();
+  watchdogTimer = setTimeout(() => {
+    if (wantsToPlay && player.readyState < 3) {
+      reconnectFresh();
+    }
+  }, 3000);
+});
+
+player.addEventListener("error", () => {
+  if (wantsToPlay) {
+    reconnectFresh();
+  }
+});
+
+if ("mediaSession" in navigator) {
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: "Live Radio",
+    artist: "Personal Stream"
+  });
+
+  navigator.mediaSession.setActionHandler("play", resumeStream);
+  navigator.mediaSession.setActionHandler("pause", pauseStream);
+}
+	
+// ^^^ THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
+	
 </script>
 	</body>
  </html>
