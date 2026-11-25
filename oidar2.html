@@ -28,12 +28,9 @@
   	<body>
   			<div class="primary">
 				<h3>RADIO</h3>
-				<audio
-					id="player"
-					controls
-					preload="none"
-					src="https://home-jelly.tail7f8e3a.ts.net/stream.mp3"
-					>Your browser does not support the audio element.</audio>
+				<audio id="radio-player" preload="none" playsinline></audio>
+<button id="toggle-btn" type="button">Play</button>
+<span id="stream-status"></span>
   				<p></p>
 				<div id="radio-widget" style="display: flex; align-items: center; gap: 12px;">
 					<img id="album-art" src="" alt="Album Cover" style="width: 64px; height: 64px; border-radius: 6px; object-fit: cover; display: none;"/>
@@ -129,106 +126,122 @@
 
 // vvv THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
 
-const player = document.getElementById("player");
-const streamUrl = "https://home-jelly.tail7f8e3a.ts.net/stream.mp3";
+const STREAM_URL = "https://home-jelly.tail7f8e3a.ts.net/stream.mp3";
+const player = document.getElementById("radio-player");
+const toggleBtn = document.getElementById("toggle-btn");
+const statusEl = document.getElementById("stream-status");
 
-let isStale = false;
-let isReconnecting = false;
+let isPlaying = false;
+let isConnecting = false;
+let startedWhileHidden = false;
+let playAttemptId = 0;
 
-// Tell iOS Safari this tab is a dedicated media player (where supported)
-if ("audioSession" in navigator) {
-  try {
-    navigator.audioSession.type = "playback";
-  } catch (e) {}
-}
+function setState(state, message = "") {
+  isPlaying = state === "playing";
+  isConnecting = state === "connecting";
 
-function registerMediaSessionHandlers() {
-  if (!("mediaSession" in navigator)) return;
+  toggleBtn.textContent =
+    state === "connecting" ? "Connecting..." :
+    state === "playing" ? "Stop" : "Play";
 
-  try {
-    navigator.mediaSession.setActionHandler("play", () => {
-      connectAndPlay();
-    });
-    navigator.mediaSession.setActionHandler("pause", () => {
-      player.pause();
-    });
-    // Clear skip handlers so mobile lock screens don't override play/pause behavior
-    navigator.mediaSession.setActionHandler("seekbackward", null);
-    navigator.mediaSession.setActionHandler("seekforward", null);
-  } catch (e) {
-    console.warn("MediaSession handler setup failed:", e);
+  if (statusEl) statusEl.textContent = message;
+
+  if ("mediaSession" in navigator) {
+    try {
+      navigator.mediaSession.playbackState = isPlaying ? "playing" : "none";
+    } catch (e) {}
   }
 }
 
-function connectAndPlay() {
-  if (isReconnecting) return;
+function hardStop(message = "") {
+  playAttemptId++; // Invalidate any pending play() promise
+  startedWhileHidden = false;
+  setState("stopped", message);
 
-  isReconnecting = true;
-  isStale = false;
-
-  // 1. Pause first so a native resume doesn't collide with the src swap
-  if (!player.paused) {
-    player.pause();
-  }
-
-  // 2. Point to a fresh live URL and explicitly reset the media pipeline
-  player.src = `${streamUrl}?t=${Date.now()}`;
+  // Tear down the stream and flush 100% of buffered audio
+  player.pause();
+  player.removeAttribute("src");
   player.load();
+}
 
-  // 3. Start playback immediately inside the same event tick
+function startFreshStream() {
+  const attemptId = ++playAttemptId;
+  startedWhileHidden = document.hidden;
+  setState("connecting", "Connecting...");
+
+  // Always request a brand-new live stream URL
+  player.src = `${STREAM_URL}?t=${Date.now()}`;
+
   const playPromise = player.play();
   if (playPromise !== undefined) {
     playPromise
       .then(() => {
-        isReconnecting = false;
+        // Ignore stale promises if the user stopped or unlocked after a hang
+        if (attemptId !== playAttemptId) {
+          player.pause();
+          return;
+        }
+        startedWhileHidden = false;
+        setState("playing", "Live");
       })
       .catch((err) => {
-        isReconnecting = false;
-        isStale = true; // Allow the next tap to retry cleanly
-        if ("mediaSession" in navigator) {
-          navigator.mediaSession.playbackState = "paused";
-        }
-        console.error("Stream play failed:", err);
+        if (attemptId !== playAttemptId) return;
+        if (err.name === "AbortError") return;
+        hardStop("Tap Play to reconnect");
       });
-  } else {
-    isReconnecting = false;
   }
 }
 
-// Re-bind handlers once audio is genuinely playing (critical for iOS Lock Screen)
-player.addEventListener("playing", () => {
-  isReconnecting = false;
-  registerMediaSessionHandlers();
-  if ("mediaSession" in navigator) {
-    navigator.mediaSession.playbackState = "playing";
+// In-app Play / Stop button
+toggleBtn.addEventListener("click", () => {
+  if (isPlaying || isConnecting) {
+    hardStop();
+  } else {
+    startFreshStream();
   }
 });
 
-// Mark the buffer stale only on real pauses
+// Any OS pause (Lock Screen, phone call, other app audio) flushes the buffer immediately
 player.addEventListener("pause", () => {
-  if (!isReconnecting) {
-    isStale = true;
-    if ("mediaSession" in navigator) {
-      navigator.mediaSession.playbackState = "paused";
-    }
+  if (isPlaying) {
+    hardStop();
   }
 });
 
-// Catch in-app Play button clicks after a pause
-player.addEventListener("play", () => {
-  if (isStale && !isReconnecting) {
-    connectAndPlay();
-  }
-});
-
-// Reset state if a background reconnect drops or errors
+// Clean reset on dropped connection (ignores our own intentional teardown)
 player.addEventListener("error", () => {
-  isReconnecting = false;
-  isStale = true;
+  if (isPlaying || isConnecting) {
+    hardStop("Connection lost — tap Play");
+  }
 });
 
-// Register on initial load (refreshed again on every "playing" event)
-registerMediaSessionHandlers();
+player.addEventListener("ended", () => {
+  if (isPlaying || isConnecting) {
+    hardStop();
+  }
+});
+
+// If a Lock Screen Play hung while locked, cancel it on unlock instead of surprise-playing
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && isConnecting && startedWhileHidden) {
+    hardStop();
+  }
+});
+
+// Lock Screen / headphone controls
+if ("mediaSession" in navigator) {
+  try {
+    navigator.mediaSession.setActionHandler("play", () => {
+      if (!isPlaying && !isConnecting) startFreshStream();
+    });
+    navigator.mediaSession.setActionHandler("pause", () => {
+      hardStop();
+    });
+    navigator.mediaSession.setActionHandler("stop", () => {
+      hardStop();
+    });
+  } catch (e) {}
+}
 
 // ^^^ THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
 	
