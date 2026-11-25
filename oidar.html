@@ -29,7 +29,7 @@
   			<div class="primary">
 				<h3>RADIO</h3>
 				<audio
-					id="radio-player"
+					id="player"
 					controls
 					preload="none"
 					src="https://home-jelly.tail7f8e3a.ts.net/stream.mp3"
@@ -128,42 +128,83 @@
   setInterval(updateNowPlaying, 15000);
 
 // vvv THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
+
+const player = document.getElementById("player");
 const streamUrl = "https://home-jelly.tail7f8e3a.ts.net/stream.mp3";
-const player = document.getElementById("radio-player");
 
 let isStale = false;
 let isReconnecting = false;
 
+// Tell iOS Safari this tab is a dedicated media player (where supported)
+if ("audioSession" in navigator) {
+  try {
+    navigator.audioSession.type = "playback";
+  } catch (e) {}
+}
+
+function registerMediaSessionHandlers() {
+  if (!("mediaSession" in navigator)) return;
+
+  try {
+    navigator.mediaSession.setActionHandler("play", () => {
+      connectAndPlay();
+    });
+    navigator.mediaSession.setActionHandler("pause", () => {
+      player.pause();
+    });
+    // Clear skip handlers so mobile lock screens don't override play/pause behavior
+    navigator.mediaSession.setActionHandler("seekbackward", null);
+    navigator.mediaSession.setActionHandler("seekforward", null);
+  } catch (e) {
+    console.warn("MediaSession handler setup failed:", e);
+  }
+}
+
 function connectAndPlay() {
+  if (isReconnecting) return;
+
   isReconnecting = true;
   isStale = false;
 
-  // Assigning .src automatically resets the media pipeline
-  player.src = `${streamUrl}?t=${Date.now()}`;
+  // 1. Pause first so a native resume doesn't collide with the src swap
+  if (!player.paused) {
+    player.pause();
+  }
 
+  // 2. Point to a fresh live URL and explicitly reset the media pipeline
+  player.src = `${streamUrl}?t=${Date.now()}`;
+  player.load();
+
+  // 3. Start playback immediately inside the same event tick
   const playPromise = player.play();
   if (playPromise !== undefined) {
     playPromise
       .then(() => {
         isReconnecting = false;
-        if ("mediaSession" in navigator) {
-          navigator.mediaSession.playbackState = "playing";
-        }
       })
       .catch((err) => {
         isReconnecting = false;
-        isStale = true;
+        isStale = true; // Allow the next tap to retry cleanly
         if ("mediaSession" in navigator) {
           navigator.mediaSession.playbackState = "paused";
         }
-        console.warn("Stream could not restart:", err);
+        console.error("Stream play failed:", err);
       });
   } else {
     isReconnecting = false;
   }
 }
 
-// Track pauses and dropped connections
+// Re-bind handlers once audio is genuinely playing (critical for iOS Lock Screen)
+player.addEventListener("playing", () => {
+  isReconnecting = false;
+  registerMediaSessionHandlers();
+  if ("mediaSession" in navigator) {
+    navigator.mediaSession.playbackState = "playing";
+  }
+});
+
+// Mark the buffer stale only on real pauses
 player.addEventListener("pause", () => {
   if (!isReconnecting) {
     isStale = true;
@@ -173,36 +214,21 @@ player.addEventListener("pause", () => {
   }
 });
 
-player.addEventListener("ended", () => {
-  isStale = true;
-});
-
-player.addEventListener("error", () => {
-  isStale = true;
-});
-
-// Handle pressing Play inside the web app
+// Catch in-app Play button clicks after a pause
 player.addEventListener("play", () => {
-  if (isReconnecting) return;
-
-  if (isStale) {
+  if (isStale && !isReconnecting) {
     connectAndPlay();
-  } else if ("mediaSession" in navigator) {
-    navigator.mediaSession.playbackState = "playing";
   }
 });
 
-// Handle Lock Screen and headphone controls
-if ("mediaSession" in navigator) {
-  navigator.mediaSession.setActionHandler("play", () => {
-    connectAndPlay();
-  });
+// Reset state if a background reconnect drops or errors
+player.addEventListener("error", () => {
+  isReconnecting = false;
+  isStale = true;
+});
 
-  navigator.mediaSession.setActionHandler("pause", () => {
-    isReconnecting = false;
-    player.pause();
-  });
-}
+// Register on initial load (refreshed again on every "playing" event)
+registerMediaSessionHandlers();
 
 // ^^^ THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
 	
