@@ -13,7 +13,7 @@ body {
   flex-direction: column;
   text-decoration: none;
   font-family: sans-serif;
-	color: black;
+	color: white;
 }
 
 body::before {
@@ -21,7 +21,7 @@ body::before {
   position: fixed;
   inset: 0; /* Shorthand for top: 0; right: 0; bottom: 0; left: 0; */
   z-index: -1; /* Places the image behind all your page content */
- background-image: linear-gradient(rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.55)), url('https://leave-a-light-on-mgmt.github.io/assets/images/background.jpg');
+ background-image: linear-gradient(rgba(0, 0, 0, 0.75), rgba(255, 255, 255, 0.75)), url('https://leave-a-light-on-mgmt.github.io/assets/images/background.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -59,7 +59,7 @@ body::before {
 	width: 100%;
 	box-sizing: border-box;
 	background-color: rgba(255, 255, 255, 0);
-	border: 1px solid rgba(0, 0, 0, 0.4);
+	border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .footer {
