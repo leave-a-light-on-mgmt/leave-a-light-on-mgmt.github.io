@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+	<head>
+<!-- Core syntax initialization and SEO -->
+		<meta charset="UTF-8">
+  		<meta name="description" content="Radio">
+  		<meta name="keywords" content="Radio">
+  		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="robots" content="noindex, nofollow">
+    <!-- WEB APP STUFF -->
+		<link rel="manifest" href="https://leave-a-light-on-mgmt.github.io/manifest.json">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+  		<meta name="apple-mobile-web-app-title" content="RADIO" />
+		<meta name="theme-color" content="#000000">
+		<link rel="apple-touch-icon" href="icon-512x512.png">
+<!-- Favicon and Base HREF -->
+  		<base href="https://leave-a-light-on-mgmt.github.io/">
+        <link rel="shortcut icon" type="image/png" href="icon-512x512.png">
+		<link rel="icon" href="icon-512x512.svg" type="image/svg+xml">
+<!-- Call for stylesheets -->
+		<link rel="stylesheet" href="assets/css/lalo_radio_mobile.css" />
+<!--	<link rel="stylesheet" media="screen and (orientation: landscape)" href="css/jtb_desktop.css" /> -->
+<!--	<link rel="stylesheet" media="screen and (orientation: portrait)" href="css/jtb_mobile.css" /> -->
+  		<title>RADIO</title>
+  	</head>
+  	<body>
+  			<div class="primary">
+				<h3>RADIO</h3>
+				<audio
+					id="radio-player"
+					controls
+					preload="none"
+					src="https://home-jelly.tail7f8e3a.ts.net/stream.mp3"
+					>Your browser does not support the audio element.</audio>
+  				<p></p>
+				<div id="radio-widget" style="display: flex; align-items: center; gap: 12px;">
+					<img id="album-art" src="" alt="Album Cover" style="width: 64px; height: 64px; border-radius: 6px; object-fit: cover; display: none;"/>
+  					<div id="now-playing">Loading track info...</div>
+				</div>
+				<p><a href="https://www.last.fm/user/lalomgmt" target="_blank">See recently played at Last.FM</a>
+				</p>
+			</div>
+			<div class="secondary">
+				<p class="bold">Press Play to start.</p>
+  				<p>Once the music is playing, you may leave the app or lock your screen - the music will continue.</p>
+				<p class="bold">Music stopped?</p>
+				<p>Wait a moment or two for buffering. If sound doesn't return: try hitting pause, then play again.<br>Or, you may need to refresh the page, or close and reopen the app. I'm working on it!</p>
+				<p class="bold">For a home screen app:</p>
+				<p>Tap Share or "...", then look for<br>Add to Home Screen.<br><br>On iPhone, you must do the above from Safari to use the customized app icon.</p>
+				<p class="bold">What is this?</p>
+				<p>You're listening to a broadcast of music from my personal collection, off my home server. I compile the playlist, and update it when I have time. If the stream is down for a prolonged period of time, it's possibly because my power went out.</p>
+				<p class="bold">Thanks for listening. I hope you're enjoying it.</p>
+  			</div>
+			<div class="footer">
+				<p><a href="https://forms.gle/Q8EWWNznpbjQqGtA9" target="_blank">Song Request Form</a></p>
+			</div>
+<script>
+  // Check if the browser supports service workers
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered successfully with scope:', registration.scope);
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
+    });
+  }
+</script>
+		
+<!-- Recently Played from Last.FM, that pushes Metadata out to lock screen -->
+<script>
+  const username = "lalomgmt";
+  const apiKey = "b803227f3a61a58568f98da5cc6219f6";
+  const url = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${username}&api_key=${apiKey}&format=json&limit=1`;
+
+  async function updateNowPlaying() {
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      const track = data.recenttracks.track[0];
+
+      if (track) {
+        const artist = track.artist["#text"];
+        const title = track.name;
+        const album = track.album?.["#text"] || "Home Radio";
+        const isPlaying = track["@attr"] && track["@attr"].nowplaying === "true";
+
+        // 1. Update the on-page text
+        document.getElementById("now-playing").textContent = isPlaying
+          ? `Now Playing: ${artist} — ${title}`
+          : `Last Played: ${artist} — ${title}`;
+
+        // 2. Update the on-page album art
+        const artElement = document.getElementById("album-art");
+        const coverUrl = track.image?.[2]?.["#text"] || track.image?.[1]?.["#text"];
+
+        if (coverUrl) {
+          artElement.src = coverUrl;
+          artElement.style.display = "block";
+        } else {
+          artElement.style.display = "none";
+        }
+
+        // 3. Push metadata to the Lock Screen media player
+        if ("mediaSession" in navigator) {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: title,
+            artist: artist,
+            album: album,
+            artwork: coverUrl
+              ? [{ src: coverUrl, sizes: "174x174", type: "image/jpeg" }]
+              : []
+          });
+        }
+      }
+    } catch (error) {
+      document.getElementById("now-playing").textContent = "Track info unavailable";
+      document.getElementById("album-art").style.display = "none";
+    }
+  }
+
+  // Fetch immediately, then refresh every 15 seconds
+  updateNowPlaying();
+  setInterval(updateNowPlaying, 15000);
+
+// vvv THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
+
+const STREAM_URL = "https://home-jelly.tail7f8e3a.ts.net/stream.mp3";
+const player = document.getElementById("radio-player");
+
+let pausedAt = 0;
+
+function setPlaybackState(state) {
+    if ("mediaSession" in navigator) {
+        try {
+            navigator.mediaSession.playbackState = state;
+        } catch (e) {}
+    }
+}
+
+function startFreshStream() {
+    pausedAt = 0;
+    player.src = `${STREAM_URL}?t=${Date.now()}`;
+    player.load();
+    return player.play()
+        .then(() => setPlaybackState("playing"))
+        .catch(err => console.warn("Stream start failed:", err));
+}
+
+function pauseStream() {
+    pausedAt = Date.now();
+    player.pause();
+    setPlaybackState("paused");
+}
+
+function resumeStream() {
+    const pauseDuration = pausedAt ? Date.now() - pausedAt : 0;
+    pausedAt = 0;
+
+    // Only swap src to jump to live when the app is in the foreground.
+    // On the Lock Screen (document.hidden), resume the existing pipeline directly.
+    if (!document.hidden && pauseDuration > 10000) {
+        return startFreshStream();
+    }
+
+    return player.play()
+        .then(() => setPlaybackState("playing"))
+        .catch(() => {
+            // If the TCP connection timed out during a long pause, try a fresh load
+            return startFreshStream();
+        });
+}
+
+// Keep state synced when iOS/Firefox controls the <audio> element natively
+player.addEventListener("pause", () => {
+    if (!pausedAt) pausedAt = Date.now();
+    setPlaybackState("paused");
+});
+
+player.addEventListener("play", () => {
+    const pauseDuration = pausedAt ? Date.now() - pausedAt : 0;
+    pausedAt = 0;
+
+    if (!document.hidden && pauseDuration > 10000) {
+        startFreshStream();
+        return;
+    }
+    setPlaybackState("playing");
+});
+
+// Wire up Lock Screen controls safely (some WKWebView builds partially support MediaSession)
+if ("mediaSession" in navigator) {
+    try {
+        navigator.mediaSession.setActionHandler("play", () => resumeStream());
+        navigator.mediaSession.setActionHandler("pause", () => pauseStream());
+    } catch (e) {}
+}
+	
+// ^^^ THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
+	
+</script>
+	</body>
+ </html>
