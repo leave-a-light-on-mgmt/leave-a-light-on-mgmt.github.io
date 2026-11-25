@@ -29,7 +29,7 @@
   			<div class="primary">
 				<h3>RADIO</h3>
 				<audio
-					id="player"
+					id="radio-player"
 					controls
 					preload="none"
 					src="https://home-jelly.tail7f8e3a.ts.net/stream.mp3"
@@ -129,107 +129,128 @@
 
 // vvv THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
 
-const player = document.getElementById("player");
-const streamUrl = "https://home-jelly.tail7f8e3a.ts.net/stream.mp3";
+const player = document.getElementById("radio-player");
+const STREAM_URL = "https://home-jelly.tail7f8e3a.ts.net/stream.mp3";
 
-let isStale = false;
-let isReconnecting = false;
+let wantsToPlay = false;
+let pausedAt = 0;
+let watchdogTimer = null;
 
-// Tell iOS Safari this tab is a dedicated media player (where supported)
-if ("audioSession" in navigator) {
-  try {
-    navigator.audioSession.type = "playback";
-  } catch (e) {}
-}
-
-function registerMediaSessionHandlers() {
-  if (!("mediaSession" in navigator)) return;
-
-  try {
-    navigator.mediaSession.setActionHandler("play", () => {
-      connectAndPlay();
-    });
-    navigator.mediaSession.setActionHandler("pause", () => {
-      player.pause();
-    });
-    // Clear skip handlers so mobile lock screens don't override play/pause behavior
-    navigator.mediaSession.setActionHandler("seekbackward", null);
-    navigator.mediaSession.setActionHandler("seekforward", null);
-  } catch (e) {
-    console.warn("MediaSession handler setup failed:", e);
+function clearWatchdog() {
+  if (watchdogTimer) {
+    clearTimeout(watchdogTimer);
+    watchdogTimer = null;
   }
 }
 
-function connectAndPlay() {
-  if (isReconnecting) return;
-
-  isReconnecting = true;
-  isStale = false;
-
-  // 1. Pause first so a native resume doesn't collide with the src swap
-  if (!player.paused) {
-    player.pause();
+function setSessionState(state) {
+  if ("mediaSession" in navigator) {
+    navigator.mediaSession.playbackState = state;
   }
+}
 
-  // 2. Point to a fresh live URL and explicitly reset the media pipeline
-  player.src = `${streamUrl}?t=${Date.now()}`;
-  player.load();
+function reconnectFresh() {
+  clearWatchdog();
+  wantsToPlay = true;
 
-  // 3. Start playback immediately inside the same event tick
+  // Assigning src starts loading automatically without an extra .load() reset
+  player.src = `${STREAM_URL}?t=${Date.now()}`;
   const playPromise = player.play();
+
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => setSessionState("playing"))
+      .catch((err) => console.error("Reconnect failed:", err));
+  }
+}
+
+function resumeStream() {
+  clearWatchdog();
+  wantsToPlay = true;
+
+  const pauseDuration = pausedAt ? Date.now() - pausedAt : Infinity;
+
+  // Foreground resume or first start: jump straight to the live edge
+  if (!document.hidden || !player.src) {
+    reconnectFresh();
+    return;
+  }
+
+  // Background/Lock Screen resume: wake the existing audio handle first
+  const startTime = player.currentTime;
+  const playPromise = player.play();
+
   if (playPromise !== undefined) {
     playPromise
       .then(() => {
-        isReconnecting = false;
-      })
-      .catch((err) => {
-        isReconnecting = false;
-        isStale = true; // Allow the next tap to retry cleanly
-        if ("mediaSession" in navigator) {
-          navigator.mediaSession.playbackState = "paused";
+        setSessionState("playing");
+        // Audio session is awake; swap to live edge if paused longer than 5s
+        if (pauseDuration > 5000) {
+          reconnectFresh();
         }
-        console.error("Stream play failed:", err);
+      })
+      .catch(() => {
+        // Stale socket rejected; open a fresh stream URL
+        reconnectFresh();
       });
-  } else {
-    isReconnecting = false;
   }
+
+  // Watchdog: break out of a silent hang if playback doesn't advance in 3s
+  watchdogTimer = setTimeout(() => {
+    if (wantsToPlay && (player.paused || player.currentTime === startTime)) {
+      reconnectFresh();
+    }
+  }, 3000);
 }
 
-// Re-bind handlers once audio is genuinely playing (critical for iOS Lock Screen)
-player.addEventListener("playing", () => {
-  isReconnecting = false;
-  registerMediaSessionHandlers();
-  if ("mediaSession" in navigator) {
-    navigator.mediaSession.playbackState = "playing";
-  }
-});
+function pauseStream() {
+  clearWatchdog();
+  wantsToPlay = false;
+  pausedAt = Date.now();
+  player.pause();
+  setSessionState("paused");
+}
 
-// Mark the buffer stale only on real pauses
-player.addEventListener("pause", () => {
-  if (!isReconnecting) {
-    isStale = true;
-    if ("mediaSession" in navigator) {
-      navigator.mediaSession.playbackState = "paused";
+// Auto-recover the moment the screen wakes back to the browser
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && wantsToPlay) {
+    if (player.paused || player.readyState < 3) {
+      reconnectFresh();
     }
   }
 });
 
-// Catch in-app Play button clicks after a pause
-player.addEventListener("play", () => {
-  if (isStale && !isReconnecting) {
-    connectAndPlay();
+player.addEventListener("playing", () => {
+  clearWatchdog();
+  setSessionState("playing");
+});
+
+player.addEventListener("stalled", () => {
+  if (!wantsToPlay) return;
+  clearWatchdog();
+  watchdogTimer = setTimeout(() => {
+    if (wantsToPlay && player.readyState < 3) {
+      reconnectFresh();
+    }
+  }, 3000);
+});
+
+player.addEventListener("error", () => {
+  if (wantsToPlay) {
+    reconnectFresh();
   }
 });
 
-// Reset state if a background reconnect drops or errors
-player.addEventListener("error", () => {
-  isReconnecting = false;
-  isStale = true;
-});
+if ("mediaSession" in navigator) {
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: "Live Radio",
+    artist: "Personal Stream"
+  });
 
-// Register on initial load (refreshed again on every "playing" event)
-registerMediaSessionHandlers();
-
+  navigator.mediaSession.setActionHandler("play", resumeStream);
+  navigator.mediaSession.setActionHandler("pause", pauseStream);
+}
+	
 // ^^^ THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
 	
 </script>
