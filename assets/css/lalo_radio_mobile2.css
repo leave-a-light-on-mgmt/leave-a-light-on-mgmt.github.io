@@ -60,7 +60,7 @@ body::before {
 	overscroll-behavior-x: contain;
 	/* ----------------------------- */
 	
-	padding: 1rem 2rem;
+	padding: 1rem 0;
 	max-width: 100vw;
 	margin: 0 auto;
 	width: 100%;
@@ -69,6 +69,15 @@ body::before {
 	border: none;
 	border-top: 1px solid rgba(255, 255, 255, 0.4);
 	border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.slide {
+	flex: 0 0 100%;
+	height: 100%;
+	padding: 0 2rem;
+	box-sizing: border-box;
+	scroll-snap-align: start;
+	scroll-snap-stop: always;
 }
 
 .footer {
@@ -121,12 +130,4 @@ a {
 	color: #FFFFFF;
 	text-decoration: underline;
 	text-underline-offset: 0.15em;
-}
-
-.slide {
-	flex: 0 0 100%;
-	height: 100%;
-	box-sizing: border-box;
-	scroll-snap-align: start;
-	scroll-snap-stop: always;
 }
