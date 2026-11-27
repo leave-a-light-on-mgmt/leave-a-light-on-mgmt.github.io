@@ -85,6 +85,197 @@ body::before {
 	text-align: center;
 }
 
+.slidefirst {
+	background-color: rgba(0, 0, 0, 0);
+	background-repeat: no-repeat;
+	background-image:
+    /* 1. Soft halo around the leading arrow tip */
+    radial-gradient(
+      circle at 92% 50%,
+      rgba(255, 255, 255, 0.24) 0%,
+      transparent 30%
+    ),
+
+    /* 2. Left-side veil so white tails fade out cleanly behind slide text */
+    linear-gradient(
+      90deg,
+      var(--panel-bg) 8%,
+      transparent 74%
+    ),
+
+    /* 3. Lead white arrow (brightest, sharp 80-degree tip at x: 92%, y: 50%) */
+    conic-gradient(
+      from 230deg at 92% 50%,
+      transparent 0deg,
+      rgba(255, 255, 255, 0.06) 0.6deg,
+      rgba(255, 255, 255, 0.28) 40deg,
+      rgba(255, 255, 255, 0.14) 79.4deg,
+      transparent 80deg
+    ),
+
+    /* 4. Mid echo arrow (motion trail at x: 77%) */
+    conic-gradient(
+      from 230deg at 77% 50%,
+      transparent 0deg,
+      rgba(255, 255, 255, 0.04) 0.6deg,
+      rgba(255, 255, 255, 0.16) 40deg,
+      rgba(255, 255, 255, 0.08) 79.4deg,
+      transparent 80deg
+    ),
+
+    /* 5. Back echo arrow (faintest trail at x: 62%) */
+    conic-gradient(
+      from 230deg at 62% 50%,
+      transparent 0deg,
+      rgba(255, 255, 255, 0.02) 0.6deg,
+      rgba(255, 255, 255, 0.10) 40deg,
+      rgba(255, 255, 255, 0.05) 79.4deg,
+      transparent 80deg
+    );
+}
+
+
+.slidemiddle {
+	background-color: rgba(0, 0, 0, 0);
+	background-repeat: no-repeat;
+	background-image:
+    /* 1. Soft halo around the leading arrow tip */
+    radial-gradient(
+      circle at 92% 50%,
+      rgba(255, 255, 255, 0.24) 0%,
+      transparent 30%
+    ),
+
+    /* 2. Left-side veil so white tails fade out cleanly behind slide text */
+    linear-gradient(
+      90deg,
+      var(--panel-bg) 8%,
+      transparent 74%
+    ),
+
+    /* 3. Lead white arrow (brightest, sharp 80-degree tip at x: 92%, y: 50%) */
+    conic-gradient(
+      from 230deg at 92% 50%,
+      transparent 0deg,
+      rgba(255, 255, 255, 0.06) 0.6deg,
+      rgba(255, 255, 255, 0.28) 40deg,
+      rgba(255, 255, 255, 0.14) 79.4deg,
+      transparent 80deg
+    ),
+
+    /* 4. Mid echo arrow (motion trail at x: 77%) */
+    conic-gradient(
+      from 230deg at 77% 50%,
+      transparent 0deg,
+      rgba(255, 255, 255, 0.04) 0.6deg,
+      rgba(255, 255, 255, 0.16) 40deg,
+      rgba(255, 255, 255, 0.08) 79.4deg,
+      transparent 80deg
+    ),
+
+    /* 5. Back echo arrow (faintest trail at x: 62%) */
+    conic-gradient(
+      from 230deg at 62% 50%,
+      transparent 0deg,
+      rgba(255, 255, 255, 0.02) 0.6deg,
+      rgba(255, 255, 255, 0.10) 40deg,
+      rgba(255, 255, 255, 0.05) 79.4deg,
+      transparent 80deg
+    ),
+    /* 1. Soft halo around the leading left tip */
+    radial-gradient(
+      circle at 8% 50%,
+      rgba(255, 255, 255, 0.24) 0%,
+      transparent 30%
+    ),
+
+    /* 2. Right-side veil so white tails fade out cleanly */
+    linear-gradient(
+      270deg,
+      var(--panel-bg) 8%,
+      transparent 74%
+    ),
+
+    /* 3. Lead white arrow (symmetrical 80-degree tip at x: 8%, y: 50%) */
+    conic-gradient(
+      from 50deg at 8% 50%,
+      transparent 0deg,
+      rgba(255, 255, 255, 0.10) 0.6deg,
+      rgba(255, 255, 255, 0.28) 40deg,
+      rgba(255, 255, 255, 0.10) 79.4deg,
+      transparent 80deg
+    ),
+
+    /* 4. Mid echo arrow (motion trail at x: 23%) */
+    conic-gradient(
+      from 50deg at 23% 50%,
+      transparent 0deg,
+      rgba(255, 255, 255, 0.06) 0.6deg,
+      rgba(255, 255, 255, 0.16) 40deg,
+      rgba(255, 255, 255, 0.06) 79.4deg,
+      transparent 80deg
+    ),
+
+    /* 5. Back echo arrow (faintest trail at x: 38%) */
+    conic-gradient(
+      from 50deg at 38% 50%,
+      transparent 0deg,
+      rgba(255, 255, 255, 0.03) 0.6deg,
+      rgba(255, 255, 255, 0.10) 40deg,
+      rgba(255, 255, 255, 0.03) 79.4deg,
+      transparent 80deg
+    );
+}
+
+.slidelast {
+	background-color: rgba(0, 0, 0, 0);
+	background-repeat: no-repeat;
+	background-image:
+    /* 1. Soft halo around the leading left tip */
+    radial-gradient(
+      circle at 8% 50%,
+      rgba(255, 255, 255, 0.24) 0%,
+      transparent 30%
+    ),
+
+    /* 2. Right-side veil so white tails fade out cleanly */
+    linear-gradient(
+      270deg,
+      var(--panel-bg) 8%,
+      transparent 74%
+    ),
+
+    /* 3. Lead white arrow (symmetrical 80-degree tip at x: 8%, y: 50%) */
+    conic-gradient(
+      from 50deg at 8% 50%,
+      transparent 0deg,
+      rgba(255, 255, 255, 0.10) 0.6deg,
+      rgba(255, 255, 255, 0.28) 40deg,
+      rgba(255, 255, 255, 0.10) 79.4deg,
+      transparent 80deg
+    ),
+
+    /* 4. Mid echo arrow (motion trail at x: 23%) */
+    conic-gradient(
+      from 50deg at 23% 50%,
+      transparent 0deg,
+      rgba(255, 255, 255, 0.06) 0.6deg,
+      rgba(255, 255, 255, 0.16) 40deg,
+      rgba(255, 255, 255, 0.06) 79.4deg,
+      transparent 80deg
+    ),
+
+    /* 5. Back echo arrow (faintest trail at x: 38%) */
+    conic-gradient(
+      from 50deg at 38% 50%,
+      transparent 0deg,
+      rgba(255, 255, 255, 0.03) 0.6deg,
+      rgba(255, 255, 255, 0.10) 40deg,
+      rgba(255, 255, 255, 0.03) 79.4deg,
+      transparent 80deg
+    );
+}
+
 .footer {
 	padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
 }
