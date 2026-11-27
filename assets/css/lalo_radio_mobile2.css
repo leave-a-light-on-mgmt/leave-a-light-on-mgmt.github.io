@@ -96,7 +96,7 @@ body::before {
 .slidefirst::before {
   /* Adjust these four variables to customize size, shallowness, and thickness */
   --chevron-width: 30px;      /* Horizontal depth: smaller = shallower */
-  --chevron-height: 75%;      /* Vertical height relative to the panel */
+  --chevron-height: 66%;      /* Vertical height relative to the panel */
   --chevron-thickness: 32%;   /* Thickness as a share of --chevron-width */
   --chevron-right: .5rem;    /* Distance from the panel's right edge */
 
@@ -136,7 +136,7 @@ body::before {
 .slidemiddle::before,
 .slidemiddle::after {
   --chevron-width: 30px;
-  --chevron-height: 75%;
+  --chevron-height: 66%;
   --chevron-thickness: 32%;
   --chevron-edge: 0.5rem;
 
@@ -183,7 +183,7 @@ body::before {
 .slidelast::before {
   /* Same proportions as .slidefirst */
   --chevron-width: 30px;
-  --chevron-height: 75%;
+  --chevron-height: 66%;
   --chevron-thickness: 32%;
   --chevron-left: 0.5rem;
 
