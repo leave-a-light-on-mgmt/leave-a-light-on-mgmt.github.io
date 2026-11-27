@@ -90,7 +90,7 @@ body::before {
 }
 
 .slidefirst {
-  background-color: #000000;
+  background-color: rgba(0, 0, 0, 0);
   padding: 2.5rem;
   background-origin: content-box;
   background-repeat: no-repeat;
@@ -113,7 +113,7 @@ body::before {
     linear-gradient(
       90deg,
       rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.18) 100%
+      rgba(255, 255, 255, 0.01) 100%
     );
   background-size:
     35% 50%,
