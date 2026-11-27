@@ -90,54 +90,39 @@ body::before {
 }
 
 .slidefirst {
-	
-  background-color: var(--panel-bg);
-	background-color: rgba(0, 0, 0, 0);
-	background-repeat: no-repeat;
-	background-image:
-    /* 1. Soft halo around the leading arrow tip */
-    radial-gradient(
-      circle at 92% 50%,
-      rgba(255, 255, 255, 0.24) 0%,
-      transparent 30%
+  background-color: #000000;
+  padding: 2.5rem;
+  background-origin: content-box;
+  background-repeat: no-repeat;
+  background-image:
+    /* Top facet of arrowhead */
+    linear-gradient(
+      to top right,
+      rgba(255, 255, 255, 0.18) 0%,
+      rgba(255, 255, 255, 0.36) 49.5%,
+      transparent 50%
     ),
-
-    /* 2. Left-side veil so white tails fade out cleanly behind slide text */
+    /* Bottom facet of arrowhead (slightly dimmer for a 3D bevel) */
+    linear-gradient(
+      to bottom right,
+      rgba(255, 255, 255, 0.10) 0%,
+      rgba(255, 255, 255, 0.24) 49.5%,
+      transparent 50%
+    ),
+    /* Horizontal shaft fading in from the left */
     linear-gradient(
       90deg,
-      var(--panel-bg) 8%,
-      transparent 74%
-    ),
-
-    /* 3. Lead white arrow (brightest, sharp 80-degree tip at x: 92%, y: 50%) */
-    conic-gradient(
-      from 230deg at 92% 50%,
-      transparent 0deg,
-      rgba(255, 255, 255, 0.06) 0.6deg,
-      rgba(255, 255, 255, 0.28) 40deg,
-      rgba(255, 255, 255, 0.14) 79.4deg,
-      transparent 80deg
-    ),
-
-    /* 4. Mid echo arrow (motion trail at x: 77%) */
-    conic-gradient(
-      from 230deg at 77% 50%,
-      transparent 0deg,
-      rgba(255, 255, 255, 0.04) 0.6deg,
-      rgba(255, 255, 255, 0.16) 40deg,
-      rgba(255, 255, 255, 0.08) 79.4deg,
-      transparent 80deg
-    ),
-
-    /* 5. Back echo arrow (faintest trail at x: 62%) */
-    conic-gradient(
-      from 230deg at 62% 50%,
-      transparent 0deg,
-      rgba(255, 255, 255, 0.02) 0.6deg,
-      rgba(255, 255, 255, 0.10) 40deg,
-      rgba(255, 255, 255, 0.05) 79.4deg,
-      transparent 80deg
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.18) 100%
     );
+  background-size:
+    35% 50%,
+    35% 50%,
+    65% 36%;
+  background-position:
+    right top,
+    right bottom,
+    left center;
 }
 
 
