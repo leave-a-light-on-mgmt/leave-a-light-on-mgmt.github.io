@@ -1,3 +1,7 @@
+:root {
+  --panel-bg: rgba(0, 0, 0, 0);
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -86,6 +90,8 @@ body::before {
 }
 
 .slidefirst {
+	
+  background-color: var(--panel-bg);
 	background-color: rgba(0, 0, 0, 0);
 	background-repeat: no-repeat;
 	background-image:
