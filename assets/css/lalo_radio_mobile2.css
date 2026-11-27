@@ -224,7 +224,7 @@ body::before {
 }
 
 audio {
-  margin: 0 0 .75rem 0;
+  margin: .75rem 0;
   padding: 0;
 }
 
