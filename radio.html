@@ -19,21 +19,20 @@
         <link rel="shortcut icon" type="image/png" href="icon-512x512.png">
 		<link rel="icon" href="icon-512x512.svg" type="image/svg+xml">
 <!-- Call for stylesheets -->
-		<link rel="stylesheet" href="assets/css/lalo_radio_mobile.css" />
+		<link rel="stylesheet" href="assets/css/lalo_radio_mobile2.css" />
 <!--	<link rel="stylesheet" media="screen and (orientation: landscape)" href="css/jtb_desktop.css" /> -->
 <!--	<link rel="stylesheet" media="screen and (orientation: portrait)" href="css/jtb_mobile.css" /> -->
   		<title>RADIO</title>
   	</head>
   	<body>
   			<div class="primary">
-				<h3>RADIO</h3>
+				<p class="bold">RADIO</p>
 				<audio
 					id="radio-player"
 					controls
 					preload="none"
 					src="https://home-jelly.tail7f8e3a.ts.net/stream.mp3"
 					>Your browser does not support the audio element.</audio>
-  				<p></p>
 				<div id="radio-widget" style="display: flex; align-items: center; gap: 12px;">
 					<img id="album-art" src="" alt="Album Cover" style="width: 64px; height: 64px; border-radius: 6px; object-fit: cover; display: none;"/>
   					<div id="now-playing">Loading track info...</div>
@@ -42,15 +41,25 @@
 				</p>
 			</div>
 			<div class="secondary">
-				<p class="bold">Press Play to start.</p>
-  				<p>Once the music is playing, you may leave the app or lock your screen - the music will continue.</p>
-				<p class="bold">Music stopped?</p>
-				<p>Wait a moment or two for buffering. If sound doesn't return: try hitting pause, then play again.<br>Or, you may need to refresh the page, or close and reopen the app. I'm working on it!</p>
-				<p class="bold">For a home screen app:</p>
-				<p>Tap Share or "...", then look for<br>Add to Home Screen.<br><br>On iPhone, you must do the above from Safari to use the customized app icon.</p>
-				<p class="bold">What is this?</p>
-				<p>You're listening to a broadcast of music from my personal collection, off my home server. I compile the playlist, and update it when I have time. If the stream is down for a prolonged period of time, it's possibly because my power went out.</p>
-				<p class="bold">Thanks for listening. I hope you're enjoying it.</p>
+				<div class="slide slidefirst">
+					<p class="bold">Press Play to start.</p>
+  					<p>Once the music is playing, you may leave the app or lock your screen - the music will continue.</p>
+				</div>
+				<div class="slide slidemiddle">
+					<p class="bold">Music stopped?</p>
+					<p>Wait a moment or two for buffering.<br>If sound doesn't return: try hitting pause, then play again.<br>Or, you may need to refresh the page, or close and reopen the app.</p>
+				</div>
+				<div class="slide slidemiddle">
+					<p class="bold">For a home screen app:</p>
+					<p>Tap Share or "...", then look for<br>Add to Home Screen.<br><br>On iPhone, you must do the above from Safari to use the customized app icon.</p>
+				</div>
+				<div class="slide slidemiddle">
+					<p class="bold">What is this?</p>
+					<p>You're listening to a 24/7 broadcast of music from my home server. I compile the playlist, and update it when I have time. If the stream is down for a prolonged period of time, it's possible my power went out.</p>
+				</div>
+				<div class="slide slidelast">
+					<p class="bold">Thanks for listening. I hope you're enjoying it.</p>
+				</div>
   			</div>
 			<div class="footer">
 				<p><a href="https://forms.gle/Q8EWWNznpbjQqGtA9" target="_blank">Song Request Form</a></p>
