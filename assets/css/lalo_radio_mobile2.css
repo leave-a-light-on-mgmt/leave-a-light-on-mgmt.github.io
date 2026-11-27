@@ -78,6 +78,9 @@ body::before {
 	box-sizing: border-box;
 	scroll-snap-align: start;
 	scroll-snap-stop: always;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
 }
 
 .footer {
