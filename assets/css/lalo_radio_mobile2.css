@@ -98,7 +98,7 @@ body::before {
 .slidefirst::before {
   /* Adjust these four variables to customize size, shallowness, and thickness */
   --chevron-width: 30px;      /* Horizontal depth: smaller = shallower */
-  --chevron-height: 25%;      /* Vertical height relative to the panel */
+  --chevron-height: 75%;      /* Vertical height relative to the panel */
   --chevron-thickness: 32%;   /* Thickness as a share of --chevron-width */
   --chevron-right: 1rem;    /* Distance from the panel's right edge */
 
