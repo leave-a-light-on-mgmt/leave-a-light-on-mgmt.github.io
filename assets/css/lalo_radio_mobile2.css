@@ -218,11 +218,13 @@ body::before {
 /* ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ */
 
 .footer {
+	box-sizing: border-box;
+	padding-top: calc(1rem + env(safe-area-inset-bottom, 0px));
 	padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
 }
 
 audio {
-  margin: 0;
+  margin: 0 0 .75rem 0;
   padding: 0;
 }
 
