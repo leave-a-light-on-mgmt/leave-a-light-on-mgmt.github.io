@@ -49,11 +49,18 @@ body::before {
 	min-height: 0; /* Lets this flex item fit in the space below the header */
 	-webkit-overflow-scrolling: touch; /* Smoother scrolling on iOS */
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
 	justify-content: flex-start;
 	align-items: center;
-	overflow-y: auto; /* Only this area scrolls */
-	padding: 1rem 2rem;
+	overflow-x: auto; /* Only this area scrolls */
+	overflow-y: hidden;
+	/* -- slide function snapping -- */
+	scroll-snap-type: x mandatory;
+	scroll-behavior: smooth;
+	overscroll-behavior-x: contain;
+	/* ----------------------------- */
+	
+	padding: 1rem 0;
 	max-width: 100vw;
 	margin: 0 auto;
 	width: 100%;
@@ -64,12 +71,160 @@ body::before {
 	border-bottom: 1px solid rgba(255, 255, 255, 0.4);
 }
 
+.slide {
+	flex: 0 0 100%;
+	height: 100%;
+	padding: 0 2rem;
+	box-sizing: border-box;
+	scroll-snap-align: start;
+	scroll-snap-stop: always;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+}
+
+/* --- this code concerns the Chevrons on the slides --- */
+
+.slidefirst {
+  position: relative;
+  isolation: isolate;
+  background-color: rgba(0, 0, 0, 0);
+}
+
+.slidefirst::before {
+  /* Adjust these four variables to customize size, shallowness, and thickness */
+  --chevron-width: 30px;      /* Horizontal depth: smaller = shallower */
+  --chevron-height: 66%;      /* Vertical height relative to the panel */
+  --chevron-thickness: 32%;   /* Thickness as a share of --chevron-width */
+  --chevron-right: .5rem;    /* Distance from the panel's right edge */
+
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: var(--chevron-right);
+  transform: translateY(-50%);
+  width: var(--chevron-width);
+  height: var(--chevron-height);
+  z-index: -1;
+  pointer-events: none;
+
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.36) 100%
+  );
+
+  /* 6-point chevron */
+  clip-path: polygon(
+    0% 0%,                                     /* 1. Top-left outer */
+    var(--chevron-thickness) 0%,               /* 2. Top-right outer */
+    100% 50%,                                  /* 3. Outer right apex */
+    var(--chevron-thickness) 100%,             /* 4. Bottom-right outer */
+    0% 100%,                                   /* 5. Bottom-left outer */
+    calc(100% - var(--chevron-thickness)) 50%  /* 6. Inner notch */
+  );
+}
+
+.slidemiddle {
+  position: relative;
+  isolation: isolate;
+  background-color: rgba(0, 0, 0, 0);
+}
+
+.slidemiddle::before,
+.slidemiddle::after {
+  --chevron-width: 30px;
+  --chevron-height: 66%;
+  --chevron-thickness: 32%;
+  --chevron-edge: 0.5rem;
+
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: var(--chevron-width);
+  height: var(--chevron-height);
+  z-index: -1;
+  pointer-events: none;
+
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.36) 100%
+  );
+
+  clip-path: polygon(
+    0% 0%,
+    var(--chevron-thickness) 0%,
+    100% 50%,
+    var(--chevron-thickness) 100%,
+    0% 100%,
+    calc(100% - var(--chevron-thickness)) 50%
+  );
+}
+
+.slidemiddle::before {
+  right: var(--chevron-edge);
+  transform: translateY(-50%);
+}
+
+.slidemiddle::after {
+  left: var(--chevron-edge);
+  transform: translateY(-50%) scaleX(-1);
+}
+
+.slidelast {
+  position: relative;
+  isolation: isolate;
+  background-color: rgba(0, 0, 0, 0);
+}
+
+.slidelast::before {
+  /* Same proportions as .slidefirst */
+  --chevron-width: 30px;
+  --chevron-height: 66%;
+  --chevron-thickness: 32%;
+  --chevron-left: 0.5rem;
+
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: var(--chevron-left);
+  transform: translateY(-50%);
+  width: var(--chevron-width);
+  height: var(--chevron-height);
+  z-index: -1;
+  pointer-events: none;
+
+  /* Reversed gradient: dim at right tail, brightest at left tip */
+  background: linear-gradient(
+    270deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.36) 100%
+  );
+
+  /* Mirrored 6-point chevron (every X value flipped via 100% - X) */
+  clip-path: polygon(
+    100% 0%,                                   /* 1. Top-right outer */
+    calc(100% - var(--chevron-thickness)) 0%,  /* 2. Top-left outer */
+    0% 50%,                                    /* 3. Outer left apex */
+    calc(100% - var(--chevron-thickness)) 100%,/* 4. Bottom-left outer */
+    100% 100%,                                 /* 5. Bottom-right outer */
+    var(--chevron-thickness) 50%               /* 6. Inner notch */
+  );
+}
+
+/* ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ */
+
 .footer {
+	box-sizing: border-box;
+	padding-top: calc(1rem + env(safe-area-inset-bottom, 0px));
 	padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
 }
 
 audio {
-  margin: 0;
+  margin: .75rem 0;
   padding: 0;
 }
 
