@@ -118,12 +118,14 @@ body::before {
     rgba(255, 255, 255, 0.36) 100%
   );
 
-  /* 4-point tapered chevron */
+  /* 6-point chevron */
   clip-path: polygon(
-    0% 0%,
-    100% 50%,
-    0% 100%,
-    calc(100% - var(--chevron-thickness)) 50%
+    0% 0%,                                     /* 1. Top-left outer */
+    var(--chevron-thickness) 0%,               /* 2. Top-right outer */
+    100% 50%,                                  /* 3. Outer right apex */
+    var(--chevron-thickness) 100%,             /* 4. Bottom-right outer */
+    0% 100%,                                   /* 5. Bottom-left outer */
+    calc(100% - var(--chevron-thickness)) 50%  /* 6. Inner notch */
   );
 }
 
