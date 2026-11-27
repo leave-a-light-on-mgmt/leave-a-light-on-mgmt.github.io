@@ -49,10 +49,17 @@ body::before {
 	min-height: 0; /* Lets this flex item fit in the space below the header */
 	-webkit-overflow-scrolling: touch; /* Smoother scrolling on iOS */
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
 	justify-content: flex-start;
 	align-items: center;
-	overflow-y: auto; /* Only this area scrolls */
+	overflow-x: auto; /* Only this area scrolls */
+	overflow-y: hidden;
+	/* -- slide function snapping -- */
+	scroll-snap-type: x mandatory;
+	scroll-behavior: smooth;
+	overscroll-behavior-x: contain;
+	/* ----------------------------- */
+	
 	padding: 1rem 2rem;
 	max-width: 100vw;
 	margin: 0 auto;
@@ -114,4 +121,12 @@ a {
 	color: #FFFFFF;
 	text-decoration: underline;
 	text-underline-offset: 0.15em;
+}
+
+.slide {
+	flex: 0 0 100%;
+	height: 100%;
+	box-sizing: border-box;
+	scroll-snap-align: start;
+	scroll-snap-stop: always;
 }
