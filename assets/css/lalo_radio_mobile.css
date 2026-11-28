@@ -113,7 +113,7 @@ body::before {
   background: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0.04) 0%,
-    rgba(255, 255, 255, 0.36) 100%
+    rgba(255, 255, 255, 0.99) 100%
   );
 
   /* 6-point chevron */
@@ -151,7 +151,7 @@ body::before {
   background: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0.04) 0%,
-    rgba(255, 255, 255, 0.36) 100%
+    rgba(255, 255, 255, 0.99) 100%
   );
 
   clip-path: polygon(
@@ -201,7 +201,7 @@ body::before {
   background: linear-gradient(
     270deg,
     rgba(255, 255, 255, 0.04) 0%,
-    rgba(255, 255, 255, 0.36) 100%
+    rgba(255, 255, 255, 0.99) 100%
   );
 
   /* Mirrored 6-point chevron (every X value flipped via 100% - X) */
