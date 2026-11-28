@@ -59,7 +59,9 @@
 				</div>
 				<div class="slide slidelast">
 					<p class="bold">Status Updates:</p>
-					<p>Stylesheet Updated</p>
+					<!-- DIV FOR GITHUB STATUS -->
+					<div id="status-feed" class="status-feed">Loading updates...</div>
+					<!-- ^^^^^^^^^^^^^^^^^ -->
 				</div>
   			</div>
 			<div class="footer">
@@ -263,5 +265,44 @@ if ("mediaSession" in navigator) {
 // ^^^ THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
 	
 </script>
+
+<!-- THIS SCRIPT ADDS GITHUB STATUS UPDATE FUNCTIONALITY -->
+<script>
+  const USER = "leave-a-light-on-mgmt";
+  const REPO = "leave-a-light-on-mgmt.github.io";
+  const LABEL = "status";
+
+  fetch(`https://api.github.com/repos/${USER}/${REPO}/issues?labels=${LABEL}&creator=${USER}&state=open&per_page=5`)
+    .then(res => res.json())
+    .then(items => {
+      const feed = document.getElementById("status-feed");
+      feed.textContent = "";
+
+      // GitHub's Issues API also returns pull requests, so filter them out
+      const updates = items.filter(item => !item.pull_request);
+      if (!updates.length) {
+        feed.textContent = "No status updates yet.";
+        return;
+      }
+
+      updates.forEach(post => {
+        const entry = document.createElement("article");
+        const title = document.createElement("strong");
+        const date = document.createElement("small");
+        const body = document.createElement("p");
+
+        title.textContent = post.title;
+        date.textContent = " — " + new Date(post.created_at).toLocaleDateString();
+        body.textContent = post.body || "";
+
+        entry.append(title, date, body);
+        feed.appendChild(entry);
+      });
+    })
+    .catch(() => {
+      document.getElementById("status-feed").textContent = "Could not load updates.";
+    });
+</script>
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^ -->		
 	</body>
  </html>
