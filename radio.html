@@ -260,9 +260,7 @@ if ("mediaSession" in navigator) {
   navigator.mediaSession.setActionHandler("play", resumeStream);
   navigator.mediaSession.setActionHandler("pause", pauseStream);
 }
-	
 // ^^^ THIS PART ALLOWS PICKING UP AUDIO AFTER INTERRUPTION
-	
 </script>
 
 <!-- THIS SCRIPT ADDS GITHUB STATUS UPDATE FUNCTIONALITY -->
@@ -286,15 +284,16 @@ if ("mediaSession" in navigator) {
 
       updates.forEach(post => {
         const entry = document.createElement("article");
-        const title = document.createElement("strong");
         const date = document.createElement("small");
+        const lineBreak = document.createElement("br");
+        const title = document.createElement("strong");
         const body = document.createElement("p");
 
+        date.textContent = new Date(post.created_at).toLocaleDateString();
         title.textContent = post.title;
-        date.textContent = " — " + new Date(post.created_at).toLocaleDateString();
         body.textContent = post.body || "";
 
-        entry.append(title, date, body);
+        entry.append(date, lineBreak, title, body);
         feed.appendChild(entry);
       });
     })
